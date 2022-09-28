@@ -1,0 +1,14 @@
+version: '3.0'
+
+services:
+  mongo:
+    image: mongo
+    restart: always
+    ports:
+      - '27017:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: testuser
+      MONGO_INITDB_ROOT_PASSWORD: testpassword
+    container_name: chattydb
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
