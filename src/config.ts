@@ -9,6 +9,7 @@ class Config {
   public COOKIE_KEY_ONE: string;
   public COOKIE_KEY_TWO: string;
   public CLIENT_URL: string;
+  public PORT: string;
 
   constructor() {
     this.DATABASE_URL = process.env.DATABASE_URL!;
@@ -17,6 +18,7 @@ class Config {
     this.COOKIE_KEY_ONE = process.env.COOKIE_KEY_ONE!;
     this.COOKIE_KEY_TWO = process.env.COOKIE_KEY_TWO!;
     this.CLIENT_URL = process.env.CLIENT_URL!;
+    this.PORT = process.env.PORT!;
   }
 
   public validateConfig(): void {
