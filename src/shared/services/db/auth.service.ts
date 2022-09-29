@@ -13,7 +13,7 @@ class AuthService {
         { email: email.toLowerCase() },
       ],
     };
-
+    // TODO: Use exists instead
     return (await AuthModel.findOne(query).exec()) as AuthDocument;
   }
 }
