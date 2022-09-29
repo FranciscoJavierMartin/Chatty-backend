@@ -16,6 +16,7 @@ import HTTP_STATUS from 'http-status-codes';
 import socket from 'socket.io';
 import { createClient } from 'redis';
 import { createAdapter } from '@socket.io/redis-adapter';
+import Logger from 'bunyan';
 import 'express-async-errors';
 import { config } from './config';
 import setupRoutes from './routes';
@@ -23,6 +24,8 @@ import {
   CustomError,
   ErrorResponse,
 } from './shared/globals/helpers/error-handler';
+
+const log: Logger = config.createLogger('server');
 
 export class ChattyServer {
   constructor(private app: Application) {}
@@ -80,7 +83,7 @@ export class ChattyServer {
         res: Response,
         next: NextFunction
       ) => {
-        console.log(error);
+        log.error(error);
 
         if (error instanceof CustomError) {
           return res.status(error.statusCode).json(error.serializeErros());
@@ -98,7 +101,7 @@ export class ChattyServer {
       this.startHttpServer(httpServer);
       // this.socketIOConnections(socketIO);
     } catch (error) {
-      console.log(error);
+      log.error(error);
     }
   }
 
@@ -120,9 +123,9 @@ export class ChattyServer {
   }
 
   private startHttpServer(httpServer: http.Server): void {
-    console.log(`Server has started with process ${process.pid}`);
+    log.info(`Server has started with process ${process.pid}`);
     httpServer.listen(config.PORT, () => {
-      console.log(`Server running on port ${config.PORT}`);
+      log.info(`Server running on port ${config.PORT}`);
     });
   }
 
