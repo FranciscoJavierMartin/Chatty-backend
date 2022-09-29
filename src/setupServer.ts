@@ -18,12 +18,9 @@ import { createClient } from 'redis';
 import { createAdapter } from '@socket.io/redis-adapter';
 import Logger from 'bunyan';
 import 'express-async-errors';
-import { config } from './config';
-import setupRoutes from './routes';
-import {
-  CustomError,
-  ErrorResponse,
-} from './shared/globals/helpers/error-handler';
+import { config } from '@root/config';
+import setupRoutes from '@root/routes';
+import { CustomError, ErrorResponse } from '@global/helpers/error-handler';
 
 const log: Logger = config.createLogger('server');
 
@@ -129,5 +126,7 @@ export class ChattyServer {
     });
   }
 
-  private socketIOConnections(io: socket.Server): void {}
+  private socketIOConnections(io: socket.Server): void {
+    log.info('socketIOConnections');
+  }
 }
