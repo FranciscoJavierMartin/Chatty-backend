@@ -4,6 +4,8 @@
   "main": "app.js",
   "license": "MIT",
   "scripts": {
+    "start": "node ./build/app.js",
+    "build": "tsc -p .",
     "dev": "nodemon -r tsconfig-paths/register src/app.ts | ./node_modules/.bin/bunyan",
     "lint:check": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' --fix",
