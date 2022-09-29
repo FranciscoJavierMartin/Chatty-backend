@@ -11,6 +11,7 @@ import { createClient } from 'redis';
 import { createAdapter } from '@socket.io/redis-adapter';
 import 'express-async-errors';
 import { config } from './config';
+import setupRoutes from './routes';
 
 export class ChattyServer {
   constructor(private app: Application) {}
@@ -50,7 +51,9 @@ export class ChattyServer {
     app.use(urlencoded({ extended: true, limit: '50mb' }));
   }
 
-  private routeMiddlewares(app: Application): void {}
+  private routeMiddlewares(app: Application): void {
+    setupRoutes(app);
+  }
 
   private globalErrorHandler(app: Application): void {}
 
