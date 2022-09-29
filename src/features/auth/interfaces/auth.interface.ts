@@ -34,7 +34,7 @@ export interface AuthDocument extends Document {
 
 export interface SignUpData {
   _id: ObjectId;
-  uid: string;
+  uId: string;
   email: string;
   username: string;
   password: string;
