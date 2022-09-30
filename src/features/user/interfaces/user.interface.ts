@@ -1,7 +1,7 @@
 import mongoose, { Document } from 'mongoose';
 import { ObjectId } from 'mongodb';
 
-export interface IUserDocument extends Document {
+export interface UserDocument extends Document {
   _id: string | ObjectId;
   authId: string | ObjectId;
   username?: string;
@@ -18,43 +18,43 @@ export interface IUserDocument extends Document {
   blockedBy: mongoose.Types.ObjectId[];
   followersCount: number;
   followingCount: number;
-  notifications: INotificationSettings;
-  social: ISocialLinks;
+  notifications: NotificationSettings;
+  social: SocialLinks;
   bgImageVersion: string;
   bgImageId: string;
   profilePicture: string;
   createdAt?: Date;
 }
 
-export interface IResetPasswordParams {
+export interface ResetPasswordParams {
   username: string;
   email: string;
   ipaddress: string;
   date: string;
 }
 
-export interface INotificationSettings {
+export interface NotificationSettings {
   messages: boolean;
   reactions: boolean;
   comments: boolean;
   follows: boolean;
 }
 
-export interface IBasicInfo {
+export interface BasicInfo {
   quote: string;
   work: string;
   school: string;
   location: string;
 }
 
-export interface ISocialLinks {
+export interface SocialLinks {
   facebook: string;
   instagram: string;
   twitter: string;
   youtube: string;
 }
 
-export interface ISearchUser {
+export interface SearchUser {
   _id: string;
   profilePicture: string;
   username: string;
@@ -62,34 +62,34 @@ export interface ISearchUser {
   avatarColor: string;
 }
 
-export interface ISocketData {
+export interface SocketData {
   blockedUser: string;
   blockedBy: string;
 }
 
-export interface ILogin {
+export interface Login {
   userId: string;
 }
 
-export interface IUserJobInfo {
+export interface UserJobInfo {
   key?: string;
-  value?: string | ISocialLinks;
+  value?: string | SocialLinks;
 }
 
-export interface IUserJob {
+export interface UserJob {
   keyOne?: string;
   keyTwo?: string;
   key?: string;
-  value?: string | INotificationSettings | IUserDocument;
+  value?: string | NotificationSettings | UserDocument;
 }
 
-export interface IEmailJob {
+export interface EmailJob {
   receiverEmail: string;
   template: string;
   subject: string;
 }
 
-export interface IAllUsers {
-  users: IUserDocument[];
+export interface AllUsers {
+  users: UserDocument[];
   totalUsers: number;
 }

@@ -1,4 +1,4 @@
-import { IUserDocument } from '@user/interfaces/user.interface';
+import { UserDocument } from '@user/interfaces/user.interface';
 import mongoose, { model, Model, Schema } from 'mongoose';
 
 const userSchema: Schema = new Schema({
@@ -31,7 +31,7 @@ const userSchema: Schema = new Schema({
   bgImageId: { type: String, default: '' },
 });
 
-const UserModel: Model<IUserDocument> = model<IUserDocument>(
+const UserModel: Model<UserDocument> = model<UserDocument>(
   'User',
   userSchema,
   'User'
