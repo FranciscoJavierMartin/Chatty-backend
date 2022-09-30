@@ -4,6 +4,9 @@ import { createBullBoard } from '@bull-board/api';
 import { BullAdapter } from '@bull-board/api/bullAdapter';
 import { ExpressAdapter } from '@bull-board/express';
 import { config } from '@root/config';
+import { AuthJob } from '@auth/interfaces/auth.interface';
+
+type BaseJobData = AuthJob;
 
 let bullAdapters: BullAdapter[] = [];
 
@@ -40,7 +43,7 @@ export abstract class BaseQueue {
     });
   }
 
-  protected addJob(name: string, data: any): void {
+  protected addJob(name: string, data: BaseJobData): void {
     this.queue.add(name, data, {
       attempts: 3,
       backoff: { type: 'fixed', delay: 5000 },
