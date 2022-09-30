@@ -24,7 +24,7 @@ export class SignUp {
   public async create(req: Request, res: Response): Promise<void> {
     const { username, email, password, avatarColor, avatarImage } = req.body;
 
-    const isUserInDB: AuthDocument = await authService.getUserByUsernameOrEmail(
+    const isUserInDB: boolean = await authService.checkIfUserExists(
       username,
       email
     );
@@ -83,13 +83,11 @@ export class SignUp {
     );
     req.session = { jwt: userJwt };
 
-    res
-      .status(HTTP_STATUS.CREATED)
-      .json({
-        message: 'User created successfully',
-        user: userDataToCache,
-        token: userJwt,
-      });
+    res.status(HTTP_STATUS.CREATED).json({
+      message: 'User created successfully',
+      user: userDataToCache,
+      token: userJwt,
+    });
   }
 
   private signupData(data: SignUpData): AuthDocument {

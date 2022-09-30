@@ -13,8 +13,22 @@ class AuthService {
         { email: email.toLowerCase() },
       ],
     };
-    // TODO: Use exists instead
+
     return (await AuthModel.findOne(query).exec()) as AuthDocument;
+  }
+
+  public async checkIfUserExists(
+    username: string,
+    email: string
+  ): Promise<boolean> {
+    const query = {
+      $or: [
+        { username: Helpers.firstLetterUppercase(username) },
+        { email: email.toLowerCase() },
+      ],
+    };
+
+    return !!(await AuthModel.exists(query).exec());
   }
 
   public async createAuthUser(data: AuthDocument): Promise<void> {
