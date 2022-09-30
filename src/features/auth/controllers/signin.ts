@@ -13,7 +13,9 @@ export class SignIn {
   public async read(req: Request, res: Response): Promise<void> {
     const { username, password } = req.body;
 
-    const user: AuthDocument = await authService.getUserByUsername(username);
+    const user: AuthDocument = await authService.getAuthUserByUsername(
+      username
+    );
 
     if (!user || !(await user.comparePassword(password))) {
       throw new BadRequestError('Invalid credentials');

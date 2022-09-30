@@ -3,7 +3,7 @@ import { AuthModel } from '@auth/models/auth.schema';
 import { Helpers } from '@global/helpers/helpers';
 
 class AuthService {
-  public async getUserByUsernameOrEmail(
+  public async getAuthUserByUsernameOrEmail(
     username: string,
     email: string
   ): Promise<AuthDocument> {
@@ -17,7 +17,7 @@ class AuthService {
     return (await AuthModel.findOne(query).exec()) as AuthDocument;
   }
 
-  public async getUserByUsername(username: string): Promise<AuthDocument> {
+  public async getAuthUserByUsername(username: string): Promise<AuthDocument> {
     return (await AuthModel.findOne({
       username: Helpers.firstLetterUppercase(username),
     }).exec()) as AuthDocument;
