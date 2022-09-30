@@ -16,6 +16,10 @@ class AuthService {
     // TODO: Use exists instead
     return (await AuthModel.findOne(query).exec()) as AuthDocument;
   }
+
+  public async createAuthUser(data: AuthDocument): Promise<void> {
+    await AuthModel.create(data);
+  }
 }
 
 export const authService: AuthService = new AuthService();

@@ -2,6 +2,7 @@ import { ObjectId } from 'mongodb';
 import { Request, Response } from 'express';
 import HTTP_STATUS from 'http-status-codes';
 import { UploadApiResponse } from 'cloudinary';
+import JWT from 'jsonwebtoken';
 import { joiValidation } from '@global/decorators/joi-validation.decorator';
 import { signupSchema } from '@auth/schemes/signup';
 import { AuthDocument, SignUpData } from '@auth/interfaces/auth.interface';
@@ -14,6 +15,7 @@ import { UserCache } from '@service/redis/user.cache';
 import { config } from '@root/config';
 import { omit } from 'lodash';
 import { authQueue } from '@service/queues/auth.queue';
+import { userQueue } from '@service/queues/user.queue';
 
 const userCache: UserCache = new UserCache();
 
@@ -73,10 +75,21 @@ export class SignUp {
       'password',
     ]);
     authQueue.addAuthUserJob('addAuthUserToDB', { value: userDataToCache });
+    userQueue.addUserJob('addUserToDB', { value: userDataToCache });
+
+    const userJwt: string = SignUp.prototype.signUpToken(
+      authData,
+      userObjectId
+    );
+    req.session = { jwt: userJwt };
 
     res
       .status(HTTP_STATUS.CREATED)
-      .json({ message: 'User created successfully' });
+      .json({
+        message: 'User created successfully',
+        user: userDataToCache,
+        token: userJwt,
+      });
   }
 
   private signupData(data: SignUpData): AuthDocument {
@@ -127,5 +140,18 @@ export class SignUp {
         youtube: '',
       },
     } as unknown as UserDocument;
+  }
+
+  private signUpToken(data: AuthDocument, userObjectId: ObjectId): string {
+    return JWT.sign(
+      {
+        userId: userObjectId,
+        uId: data.uId,
+        email: data.email,
+        username: data.username,
+        avatarColor: data.avatarColor,
+      },
+      config.JWT_TOKEN
+    );
   }
 }
