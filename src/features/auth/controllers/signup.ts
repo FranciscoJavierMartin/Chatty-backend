@@ -28,7 +28,6 @@ export class SignUp {
     const userObjectId: ObjectId = new ObjectId();
     const uId = `${Helpers.generateRandomIntegers(12)}`;
 
-    console.log(this.signupData);
     const authData: AuthDocument = SignUp.prototype.signupData({
       _id: authObjectId,
       uId,

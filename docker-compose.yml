@@ -9,3 +9,10 @@ services:
     container_name: chattydb
     volumes:
       - ./mongodb:/var/lib/postgresql/data
+  redis:
+    image: redis/redis-stack-server:latest
+    restart: always
+    depends_on:
+      - mongo
+    ports:
+      - '6379:6379'

@@ -94,9 +94,9 @@ export class ChattyServer {
   private async startServer(app: Application): Promise<void> {
     try {
       const httpServer: http.Server = new http.Server(app);
-      // const socketIO: socket.Server = await this.createSocketIO(httpServer);
+      const socketIO: socket.Server = await this.createSocketIO(httpServer);
       this.startHttpServer(httpServer);
-      // this.socketIOConnections(socketIO);
+      this.socketIOConnections(socketIO);
     } catch (error) {
       log.error(error);
     }
