@@ -67,14 +67,7 @@ export class SignUp {
       userDataToCache
     );
 
-    omit(userDataToCache, [
-      'uId',
-      'username',
-      'email',
-      'avatarColor',
-      'password',
-    ]);
-    authQueue.addAuthUserJob('addAuthUserToDB', { value: userDataToCache });
+    authQueue.addAuthUserJob('addAuthUserToDB', { value: authData });
     userQueue.addUserJob('addUserToDB', { value: userDataToCache });
 
     const userJwt: string = SignUp.prototype.signUpToken(
