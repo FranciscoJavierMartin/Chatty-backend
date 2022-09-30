@@ -17,6 +17,12 @@ class AuthService {
     return (await AuthModel.findOne(query).exec()) as AuthDocument;
   }
 
+  public async getUserByUsername(username: string): Promise<AuthDocument> {
+    return (await AuthModel.findOne({
+      username: Helpers.firstLetterUppercase(username),
+    }).exec()) as AuthDocument;
+  }
+
   public async checkIfUserExists(
     username: string,
     email: string

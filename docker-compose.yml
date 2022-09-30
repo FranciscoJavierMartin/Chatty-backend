@@ -9,6 +9,14 @@ services:
     container_name: chattydb
     volumes:
       - ./mongodb:/var/lib/postgresql/data
+  mongoexpress:
+    image: mongo-express
+    ports:
+      - '8082:8081'
+    links:
+      - mongo
+    environment:
+      - ME_CONFIG_MONGODB_URL=mongodb://mongo:27017
   redis:
     image: redis/redis-stack-server:latest
     restart: always
