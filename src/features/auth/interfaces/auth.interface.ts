@@ -43,5 +43,5 @@ export interface SignUpData {
 }
 
 export interface AuthJob {
-  value?: string | AuthDocument| UserDocument;
+  value?: string | AuthDocument | UserDocument;
 }
