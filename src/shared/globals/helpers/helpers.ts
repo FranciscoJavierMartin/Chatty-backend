@@ -20,4 +20,16 @@ export class Helpers {
 
     return parseInt(result, 10);
   }
+
+  static parseJson(prop: string): any {
+    let res: any;
+
+    try {
+      res = JSON.parse(prop);
+    } catch (error) {
+      res = prop;
+    }
+
+    return res;
+  }
 }
