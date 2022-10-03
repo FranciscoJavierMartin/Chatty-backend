@@ -16,6 +16,7 @@ export function uploads(
         public_id,
         overwrite,
         invalidate,
+        folder: 'chatty',
       },
       (
         error: UploadApiErrorResponse | undefined,
