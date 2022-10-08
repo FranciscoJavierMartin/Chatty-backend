@@ -9,6 +9,7 @@ import { authService } from '@service/db/auth.service';
 import { BadRequestError } from '@global/helpers/error-handler';
 import { UserDocument } from '@user/interfaces/user.interface';
 import { userService } from '@service/db/user.service';
+import { mailTransport } from '@service/emails/mail.transport';
 
 export class SignIn {
   @joiValidation(loginSchema)
@@ -49,6 +50,12 @@ export class SignIn {
       uId: authUser.uId,
       createdAt: authUser.createdAt,
     } as UserDocument;
+
+    await mailTransport.sendEmail(
+      'alia.crona@ethereal.email',
+      'Testing',
+      'This is a test email'
+    );
 
     res.status(HTTP_STATUS.OK).json({
       message: 'User login successfuly',
