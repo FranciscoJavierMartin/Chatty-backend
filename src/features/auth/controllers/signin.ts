@@ -58,21 +58,6 @@ export class SignIn {
       createdAt: authUser.createdAt,
     } as UserDocument;
 
-    const templateParams: ResetPasswordParams = {
-      username: userDocument.username!,
-      email: userDocument.email!,
-      ipaddress: publicIP.address(),
-      date: moment().format('DD/MM/YYYY HH:mm'),
-    };
-
-    const template: string =
-      resetPasswordTemplate.getPasswordResetTemplate(templateParams);
-    emailQueue.addEmailJob('forgotPasswordEmail', {
-      template,
-      receiverEmail: 'alia.crona@ethereal.email',
-      subject: 'Password reset confirmation',
-    });
-
     res.status(HTTP_STATUS.OK).json({
       message: 'User login successfuly',
       user: userDocument,

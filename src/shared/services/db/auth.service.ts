@@ -23,6 +23,12 @@ class AuthService {
     }).exec()) as AuthDocument;
   }
 
+  public async getAuthUserByEmail(email: string): Promise<AuthDocument> {
+    return (await AuthModel.findOne({
+      email: email.toLowerCase(),
+    }).exec()) as AuthDocument;
+  }
+
   public async checkIfUserExists(
     username: string,
     email: string
@@ -39,6 +45,22 @@ class AuthService {
 
   public async createAuthUser(data: AuthDocument): Promise<void> {
     await AuthModel.create(data);
+  }
+
+  public async updatePasswordToken(
+    authId: string,
+    token: string,
+    tokenExpiration: number
+  ): Promise<void> {
+    await AuthModel.updateOne(
+      {
+        _id: authId,
+      },
+      {
+        passwordResetToken: token,
+        passwordResetExpires: tokenExpiration,
+      }
+    );
   }
 }
 
