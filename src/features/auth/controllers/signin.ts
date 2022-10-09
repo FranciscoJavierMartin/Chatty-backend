@@ -7,11 +7,16 @@ import { loginSchema } from '@auth/schemes/signin';
 import { AuthDocument } from '@auth/interfaces/auth.interface';
 import { authService } from '@service/db/auth.service';
 import { BadRequestError } from '@global/helpers/error-handler';
-import { UserDocument } from '@user/interfaces/user.interface';
+import {
+  ResetPasswordParams,
+  UserDocument,
+} from '@user/interfaces/user.interface';
 import { userService } from '@service/db/user.service';
-import { mailTransport } from '@service/emails/mail.transport';
 import { forgotPasswordTemplate } from '@service/emails/templates/forgot-password/forgot-password-template';
 import { emailQueue } from '@service/queues/email.queue';
+import moment from 'moment';
+import publicIP from 'ip';
+import { resetPasswordTemplate } from '@service/emails/templates/reset-password/reset-password-template';
 
 export class SignIn {
   @joiValidation(loginSchema)
@@ -53,15 +58,19 @@ export class SignIn {
       createdAt: authUser.createdAt,
     } as UserDocument;
 
-    const resetLink = `${config.CLIENT_URL}/reset-password?token=123456789`;
-    const template: string = forgotPasswordTemplate.passwordForgotTemplate(
-      authUser.username,
-      resetLink
-    );
+    const templateParams: ResetPasswordParams = {
+      username: userDocument.username!,
+      email: userDocument.email!,
+      ipaddress: publicIP.address(),
+      date: moment().format('DD/MM/YYYY HH:mm'),
+    };
+
+    const template: string =
+      resetPasswordTemplate.getPasswordResetTemplate(templateParams);
     emailQueue.addEmailJob('forgotPasswordEmail', {
       template,
       receiverEmail: 'alia.crona@ethereal.email',
-      subject: 'Reset your password',
+      subject: 'Password reset confirmation',
     });
 
     res.status(HTTP_STATUS.OK).json({

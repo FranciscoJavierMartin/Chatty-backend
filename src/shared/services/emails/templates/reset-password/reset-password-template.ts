@@ -3,7 +3,7 @@ import ejs from 'ejs';
 import { ResetPasswordParams } from '@user/interfaces/user.interface';
 
 class ResetPasswordTemplate {
-  public passwordResetTemplate({
+  public getPasswordResetTemplate({
     username,
     email,
     ipaddress,
