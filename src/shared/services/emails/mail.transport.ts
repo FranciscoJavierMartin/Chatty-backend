@@ -53,6 +53,7 @@ class MailTransport {
 
     try {
       await transporter.sendMail(mailOptions);
+      log.info('Development email sent successfully');
     } catch (error) {
       log.error('Error sending email', error);
       throw new BadRequestError('Error sending email');
@@ -73,6 +74,7 @@ class MailTransport {
 
     try {
       await sendGridMail.send(mailOptions);
+      log.info('Production email sent successfully');
     } catch (error) {
       log.error('Error sending email', error);
       throw new BadRequestError('Error sending email');

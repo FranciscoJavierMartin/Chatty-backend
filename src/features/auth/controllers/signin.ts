@@ -10,6 +10,8 @@ import { BadRequestError } from '@global/helpers/error-handler';
 import { UserDocument } from '@user/interfaces/user.interface';
 import { userService } from '@service/db/user.service';
 import { mailTransport } from '@service/emails/mail.transport';
+import { forgotPasswordTemplate } from '@service/emails/templates/forgot-password/forgot-password-template';
+import { emailQueue } from '@service/queues/email.queue';
 
 export class SignIn {
   @joiValidation(loginSchema)
@@ -51,11 +53,16 @@ export class SignIn {
       createdAt: authUser.createdAt,
     } as UserDocument;
 
-    await mailTransport.sendEmail(
-      'alia.crona@ethereal.email',
-      'Testing',
-      'This is a test email'
+    const resetLink = `${config.CLIENT_URL}/reset-password?token=123456789`;
+    const template: string = forgotPasswordTemplate.passwordForgotTemplate(
+      authUser.username,
+      resetLink
     );
+    emailQueue.addEmailJob('forgotPasswordEmail', {
+      template,
+      receiverEmail: 'alia.crona@ethereal.email',
+      subject: 'Reset your password',
+    });
 
     res.status(HTTP_STATUS.OK).json({
       message: 'User login successfuly',
