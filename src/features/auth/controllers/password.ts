@@ -57,7 +57,6 @@ export class Password {
     });
   }
 
-  // TODO: Implement decorator to validate req.params
   @joiValidation(passwordSchema)
   @joiValidationParams(tokenSchema)
   public async update(req: Request, res: Response): Promise<void> {
