@@ -29,6 +29,15 @@ class AuthService {
     }).exec()) as AuthDocument;
   }
 
+  public async getAuthUserByPasswordToken(
+    token: string
+  ): Promise<AuthDocument> {
+    return (await AuthModel.findOne({
+      passwordResetToken: token,
+      passwordResetExpires: { $gt: Date.now() },
+    }).exec()) as AuthDocument;
+  }
+
   public async checkIfUserExists(
     username: string,
     email: string
