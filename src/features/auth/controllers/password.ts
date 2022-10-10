@@ -4,8 +4,15 @@ import moment from 'moment';
 import publicIp from 'ip';
 import HTTP_STATUS from 'http-status-codes';
 import { AuthDocument } from '@auth/interfaces/auth.interface';
-import { emailSchema, passwordSchema } from '@auth/schemes/password';
-import { joiValidation } from '@global/decorators/joi-validation.decorator';
+import {
+  emailSchema,
+  passwordSchema,
+  tokenSchema,
+} from '@auth/schemes/password';
+import {
+  joiValidation,
+  joiValidationParams,
+} from '@global/decorators/joi-validation.decorator';
 import { BadRequestError } from '@global/helpers/error-handler';
 import { authService } from '@service/db/auth.service';
 import { config } from '@root/config';
@@ -52,6 +59,7 @@ export class Password {
 
   // TODO: Implement decorator to validate req.params
   @joiValidation(passwordSchema)
+  @joiValidationParams(tokenSchema)
   public async update(req: Request, res: Response): Promise<void> {
     const { password } = req.body;
     const { token } = req.params;
