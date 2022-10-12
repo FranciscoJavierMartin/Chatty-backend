@@ -3,8 +3,8 @@ import mongoose, { Document } from 'mongoose';
 
 interface Reactions {
   like: number;
-  lover: number;
-  haha: number;
+  love: number;
+  happy: number;
   wow: number;
   sad: number;
   angry: number;
