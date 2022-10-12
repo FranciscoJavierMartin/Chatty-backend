@@ -51,7 +51,7 @@ export class SignIn {
     } as UserDocument;
 
     res.status(HTTP_STATUS.OK).json({
-      message: 'User login successfuly',
+      message: 'User login successfully',
       user: userDocument,
       token: userJwt,
     });

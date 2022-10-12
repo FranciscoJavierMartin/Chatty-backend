@@ -4,7 +4,7 @@ import {
   authMockRequest,
   authMockResponse,
   authMock,
-} from '@root/features/mocks/auth.mock';
+} from '@root/mocks/auth.mock';
 import { SignUp } from '@auth/controllers/signup';
 import { CustomError } from '@global/helpers/error-handler';
 import { authService } from '@service/db/auth.service';
