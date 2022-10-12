@@ -1,9 +1,12 @@
 import { joiValidation } from '@global/decorators/joi-validation.decorator';
 import { PostDocument } from '@post/interfaces/post.interface';
 import { postSchema } from '@post/schemas/post.schemes';
+import { PostCache } from '@service/redis/post.cache';
 import { Request, Response } from 'express';
 import HTTP_STATUS from 'http-status-codes';
 import { ObjectId } from 'mongodb';
+
+const postCache: PostCache = new PostCache();
 
 export class Create {
   @joiValidation(postSchema)
@@ -37,6 +40,13 @@ export class Create {
         wow: 0,
       },
     } as PostDocument;
+
+    await postCache.savePostToCache({
+      key: postObjectId,
+      currentUserId: req.currentUser!.userId,
+      uId: req.currentUser!.uId,
+      createdPost,
+    });
 
     res
       .status(HTTP_STATUS.CREATED)

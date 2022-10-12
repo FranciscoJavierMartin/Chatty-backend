@@ -4,7 +4,7 @@ export interface ErrorResponse {
   message: string;
   statusCode: number;
   status: string;
-  serializeErros(): IError;
+  serializeErrors(): IError;
 }
 
 export interface IError {
