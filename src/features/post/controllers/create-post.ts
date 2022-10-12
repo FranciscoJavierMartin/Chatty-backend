@@ -2,6 +2,7 @@ import { joiValidation } from '@global/decorators/joi-validation.decorator';
 import { PostDocument } from '@post/interfaces/post.interface';
 import { postSchema } from '@post/schemas/post.schemes';
 import { PostCache } from '@service/redis/post.cache';
+import { socketIOPostObject } from '@socket/post';
 import { Request, Response } from 'express';
 import HTTP_STATUS from 'http-status-codes';
 import { ObjectId } from 'mongodb';
@@ -40,6 +41,8 @@ export class Create {
         wow: 0,
       },
     } as PostDocument;
+
+    socketIOPostObject.emit('add post', createdPost);
 
     await postCache.savePostToCache({
       key: postObjectId,
