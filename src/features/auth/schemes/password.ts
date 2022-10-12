@@ -21,4 +21,10 @@ const passwordSchema: ObjectSchema = Joi.object().keys({
   }),
 });
 
-export { emailSchema, passwordSchema };
+const tokenSchema: ObjectSchema = Joi.object().keys({
+  token: Joi.string().required().messages({
+    'any.required': 'Token missing',
+  }),
+});
+
+export { emailSchema, passwordSchema, tokenSchema };

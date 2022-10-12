@@ -16,6 +16,10 @@ class Config {
   public CLOUDINARY_CLOUD_NAME: string;
   public CLOUDINARY_API_KEY: string;
   public CLOUDINARY_API_SECRET: string;
+  public SENDER_EMAIL: string;
+  public SENDER_EMAIL_PASSWORD: string;
+  public SENDGRID_API_KEY: string;
+  public SENDGRID_SENDER: string;
 
   constructor() {
     this.DATABASE_URL = process.env.DATABASE_URL!;
@@ -29,6 +33,10 @@ class Config {
     this.CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME!;
     this.CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY!;
     this.CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET!;
+    this.SENDER_EMAIL = process.env.SENDER_EMAIL!;
+    this.SENDER_EMAIL_PASSWORD = process.env.SENDER_EMAIL_PASSWORD!;
+    this.SENDGRID_API_KEY = process.env.SENDGRID_API_KEY!;
+    this.SENDGRID_SENDER = process.env.SENDGRID_SENDER!;
   }
 
   public createLogger(name: string): bunyan {
