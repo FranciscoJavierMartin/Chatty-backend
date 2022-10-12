@@ -3,11 +3,30 @@
 import { AuthDocument, AuthPayload } from '@auth/interfaces/auth.interface';
 import { Response } from 'express';
 
+export const authMockRequest = (
+  sessionData: IJWT,
+  body: IAuthMock,
+  currentUser?: AuthPayload | null,
+  params?: any
+) => ({
+  session: sessionData,
+  body,
+  params,
+  currentUser,
+});
+
+export const authMockResponse = (): Response => {
+  const res: Response = {} as Response;
+  res.status = jest.fn().mockReturnValue(res);
+  res.json = jest.fn().mockReturnValue(res);
+  return res;
+};
+
 export interface IJWT {
   jwt?: string;
 }
 
-export interface AuthMock {
+export interface IAuthMock {
   _id?: string;
   username?: string;
   email?: string;
@@ -32,7 +51,6 @@ export interface AuthMock {
   comments?: boolean;
   follows?: boolean;
 }
-
 export const authUserPayload: AuthPayload = {
   userId: '60263f14648fed5246e322d9',
   uId: '1621613119252066',
@@ -52,22 +70,3 @@ export const authMock = {
   save: () => {},
   comparePassword: () => false,
 } as unknown as AuthDocument;
-
-export const authMockRequest = (
-  sessionData: IJWT,
-  body: AuthMock,
-  currentUser?: AuthPayload | null,
-  params?: any
-) => ({
-  session: sessionData,
-  body,
-  params,
-  currentUser,
-});
-
-export const authMockResponse = (): Response => {
-  const res: Response = {} as Response;
-  res.status = jest.fn().mockReturnValue(res);
-  res.json = jest.fn().mockReturnValue(res);
-  return res;
-};
