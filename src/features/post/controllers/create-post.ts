@@ -1,6 +1,7 @@
 import { joiValidation } from '@global/decorators/joi-validation.decorator';
 import { PostDocument } from '@post/interfaces/post.interface';
 import { postSchema } from '@post/schemas/post.schemes';
+import { postQueue } from '@service/queues/post.queue';
 import { PostCache } from '@service/redis/post.cache';
 import { socketIOPostObject } from '@socket/post';
 import { Request, Response } from 'express';
@@ -49,6 +50,11 @@ export class Create {
       currentUserId: req.currentUser!.userId,
       uId: req.currentUser!.uId,
       createdPost,
+    });
+
+    postQueue.addPostJob('addPostToDB', {
+      key: req.currentUser!.userId,
+      value: createdPost,
     });
 
     res

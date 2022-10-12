@@ -8,7 +8,7 @@ class PostQueue extends BaseQueue {
     this.processJob('addPostToDB', 5, postWorker.savePostToDB);
   }
 
-  public addAuthUserJob(name: string, data: PostJobData): void {
+  public addPostJob(name: string, data: PostJobData): void {
     this.addJob(name, data);
   }
 }
