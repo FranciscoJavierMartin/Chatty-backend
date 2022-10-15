@@ -108,7 +108,7 @@ export class PostCache extends BaseCache {
   public async getPostsFromCache(
     key: string,
     start: number,
-    end: string
+    end: number
   ): Promise<PostDocument[]> {
     try {
       if (!this.client.isOpen) {
@@ -161,7 +161,7 @@ export class PostCache extends BaseCache {
   public async getPostsWithImageFromCache(
     key: string,
     start: number,
-    end: string
+    end: number
   ): Promise<PostDocument[]> {
     try {
       if (!this.client.isOpen) {
