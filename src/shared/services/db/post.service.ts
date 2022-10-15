@@ -1,4 +1,4 @@
-import { PostDocument } from '@post/interfaces/post.interface';
+import { GetPostsQuery, PostDocument } from '@post/interfaces/post.interface';
 import { PostModel } from '@post/models/post.schema';
 import { UserDocument } from '@user/interfaces/user.interface';
 import { UserModel } from '@user/models/user.schema';
@@ -20,6 +20,30 @@ class PostService {
     );
 
     await Promise.all([post, user]);
+  }
+
+  public async getPosts(
+    query: GetPostsQuery,
+    skip = 0,
+    limit = 0,
+    sort: Record<string, 1 | -1>
+  ): Promise<PostDocument[]> {
+    let postQuery = {};
+
+    if (query.imgId && query.gifUrl) {
+      postQuery = { $or: [{ imgId: { $ne: '' } }, { gifUrl: { $ne: '' } }] };
+    } else {
+      postQuery = query;
+    }
+
+    const posts: PostDocument[] = await PostModel.aggregate([
+      { $match: postQuery },
+      { $sort: sort },
+      { $skip: skip },
+      { $limit: limit },
+    ]);
+
+    return posts;
   }
 }
 
