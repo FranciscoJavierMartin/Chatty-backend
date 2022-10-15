@@ -14,6 +14,8 @@ services:
     restart: always
     ports:
       - '8082:8081'
+    depends_on:
+      - mongo
     links:
       - mongo
     environment:
