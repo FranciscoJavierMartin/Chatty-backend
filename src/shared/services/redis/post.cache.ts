@@ -198,4 +198,45 @@ export class PostCache extends BaseCache {
       throw new ServerError('Server error. Try again');
     }
   }
+
+  public async getPostsByUserFromCache(
+    key: string,
+    uId: string
+  ): Promise<PostDocument[]> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+
+      const reply: string[] = await this.client.ZRANGE(key, uId, uId, {
+        REV: true,
+        BY: 'SCORE',
+      });
+
+      const multi: ReturnType<typeof this.client.multi> = this.client.multi();
+
+      for (const value of reply) {
+        multi.HGETALL(`posts:${value}`);
+      }
+
+      const replies: PostCacheReturnedType = await multi.exec();
+      const postReplies: PostDocument[] = [];
+
+      for (const post of replies as unknown[] as PostDocument[]) {
+        if ((post.imgId && post.imgVersion) || post.gifUrl) {
+          post.commentsCount = Helpers.parseJson(
+            `${post.commentsCount}`
+          ) as number;
+          post.reactions = Helpers.parseJson(`${post.reactions}`) as Reactions;
+          post.createdAt = new Date(Helpers.parseJson(`${post.createdAt}`));
+          postReplies.push(post);
+        }
+      }
+
+      return postReplies;
+    } catch (error) {
+      this.log.error(error);
+      throw new ServerError('Server error. Try again');
+    }
+  }
 }
