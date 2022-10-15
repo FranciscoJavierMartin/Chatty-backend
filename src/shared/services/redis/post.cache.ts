@@ -239,4 +239,18 @@ export class PostCache extends BaseCache {
       throw new ServerError('Server error. Try again');
     }
   }
+
+  public async getTotalPostsByUserInCache(uId: number): Promise<number> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+
+      const count: number = await this.client.ZCOUNT('post', uId, uId);
+      return count;
+    } catch (error) {
+      this.log.error(error);
+      throw new ServerError('Server error. Try again');
+    }
+  }
 }
