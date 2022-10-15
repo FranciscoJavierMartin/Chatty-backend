@@ -129,14 +129,12 @@ export class PostCache extends BaseCache {
       const postReplies: PostDocument[] = [];
 
       for (const post of replies as unknown[] as PostDocument[]) {
-        if (post) {
-          post.commentsCount = Helpers.parseJson(
-            `${post.commentsCount}`
-          ) as number;
-          post.reactions = Helpers.parseJson(`${post.reactions}`) as Reactions;
-          post.createdAt = new Date(Helpers.parseJson(`${post.createdAt}`));
-          postReplies.push(post);
-        }
+        post.commentsCount = Helpers.parseJson(
+          `${post.commentsCount}`
+        ) as number;
+        post.reactions = Helpers.parseJson(`${post.reactions}`) as Reactions;
+        post.createdAt = new Date(Helpers.parseJson(`${post.createdAt}`));
+        postReplies.push(post);
       }
 
       return postReplies;
@@ -154,6 +152,47 @@ export class PostCache extends BaseCache {
 
       const count: number = await this.client.ZCARD('post');
       return count;
+    } catch (error) {
+      this.log.error(error);
+      throw new ServerError('Server error. Try again');
+    }
+  }
+
+  public async getPostsWithImageFromCache(
+    key: string,
+    start: number,
+    end: string
+  ): Promise<PostDocument[]> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+
+      const reply: string[] = await this.client.ZRANGE(key, start, end, {
+        REV: true,
+      });
+
+      const multi: ReturnType<typeof this.client.multi> = this.client.multi();
+
+      for (const value of reply) {
+        multi.HGETALL(`posts:${value}`);
+      }
+
+      const replies: PostCacheReturnedType = await multi.exec();
+      const postWithImages: PostDocument[] = [];
+
+      for (const post of replies as unknown[] as PostDocument[]) {
+        if ((post.imgId && post.imgVersion) || post.gifUrl) {
+          post.commentsCount = Helpers.parseJson(
+            `${post.commentsCount}`
+          ) as number;
+          post.reactions = Helpers.parseJson(`${post.reactions}`) as Reactions;
+          post.createdAt = new Date(Helpers.parseJson(`${post.createdAt}`));
+          postWithImages.push(post);
+        }
+      }
+
+      return postWithImages;
     } catch (error) {
       this.log.error(error);
       throw new ServerError('Server error. Try again');
