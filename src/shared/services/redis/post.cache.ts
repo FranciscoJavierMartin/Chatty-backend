@@ -280,4 +280,63 @@ export class PostCache extends BaseCache {
       throw new ServerError('Server error. Try again');
     }
   }
+
+  public async updatePostInCache(
+    key: string,
+    updatedPost: PostDocument
+  ): Promise<PostDocument> {
+    const {
+      post,
+      bgColor,
+      feelings,
+      privacy,
+      gifUrl,
+      imgVersion,
+      imgId,
+      profilePicture,
+    } = updatedPost;
+    const dataToSave: string[] = [
+      'post',
+      `${post}`,
+      'bgColor',
+      `${bgColor}`,
+      'feelings',
+      `${feelings}`,
+      'privacy',
+      `${privacy}`,
+      'gifUrl',
+      `${gifUrl}`,
+      'profilePicture',
+      `${profilePicture}`,
+      'imgVersion',
+      `${imgVersion}`,
+      'imgId',
+      `${imgId}`,
+    ];
+
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+
+      await this.client.HSET(`posts:${key}`, dataToSave);
+      const multi: ReturnType<typeof this.client.multi> = this.client.multi();
+      multi.HGETALL(`posts:${key}`);
+      const reply: PostCacheReturnedType = await multi.exec();
+      const postReply = reply as unknown as PostDocument[];
+      postReply[0].commentsCount = Helpers.parseJson(
+        postReply[0].commentsCount.toString()
+      );
+      postReply[0].reactions =
+        Helpers.parseJson(postReply[0].reactions?.toString() || '') || {};
+      postReply[0].createdAt = new Date(
+        Helpers.parseJson(postReply[0].createdAt!.toString())
+      );
+
+      return postReply[0];
+    } catch (error) {
+      this.log.error(error);
+      throw new ServerError('Server error. Try again');
+    }
+  }
 }
