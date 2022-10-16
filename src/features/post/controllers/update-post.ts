@@ -15,40 +15,7 @@ const postCache: PostCache = new PostCache();
 export class Update {
   @joiValidation(postSchema)
   public async post(req: Request, res: Response): Promise<void> {
-    // const {
-    //   post,
-    //   bgColor,
-    //   feelings,
-    //   privacy,
-    //   gifUrl,
-    //   imgVersion,
-    //   imgId,
-    //   profilePicture,
-    // } = req.body;
-    // const { postId } = req.params;
-
-    // const updatedPost: PostDocument = {
-    //   post,
-    //   bgColor,
-    //   privacy,
-    //   feelings,
-    //   gifUrl,
-    //   profilePicture,
-    //   imgVersion,
-    //   imgId,
-    // } as PostDocument;
-
-    // await postCache.updatePostInCache(postId, updatedPost);
-
-    // socketIOPostObject.emit('update post', updatedPost, 'posts');
-
-    // postQueue.addPostJob('updatePostInDB', {
-    //   key: postId,
-    //   value: updatedPost,
-    // });
-
     await Update.prototype.updatePostWithImage(req);
-
     res.status(HTTP_STATUS.OK).json({ message: 'Post updated successfully' });
   }
 
@@ -62,7 +29,9 @@ export class Update {
       await Update.prototype.addImageToExistingPost(req);
     }
 
-    res.status(HTTP_STATUS.OK).json({ message: 'Post updated successfully' });
+    res
+      .status(HTTP_STATUS.OK)
+      .json({ message: 'Post with image updated successfully' });
   }
 
   private async updatePostWithImage(req: Request): Promise<void> {

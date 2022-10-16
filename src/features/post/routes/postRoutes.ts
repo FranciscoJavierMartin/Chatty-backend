@@ -40,6 +40,11 @@ class PostRoutes {
       authMiddleware.checkAuthentication,
       Update.prototype.post
     );
+    this.router.put(
+      '/post/image/:postId',
+      authMiddleware.checkAuthentication,
+      Update.prototype.postWithImage
+    );
 
     this.router.delete(
       '/post/:postId',
