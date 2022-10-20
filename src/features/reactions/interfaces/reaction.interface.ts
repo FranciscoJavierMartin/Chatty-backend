@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { Document } from 'mongoose';
 
-export interface IReactionDocument extends Document {
+export interface ReactionDocument extends Document {
   _id?: string | ObjectId;
   username: string;
   avataColor: string;
@@ -13,7 +13,7 @@ export interface IReactionDocument extends Document {
   comment?: string;
 }
 
-export interface IReactions {
+export interface Reactions {
   like: number;
   love: number;
   happy: number;
@@ -22,22 +22,22 @@ export interface IReactions {
   angry: number;
 }
 
-export interface IReactionJob {
+export interface ReactionJob {
   postId: string;
   username: string;
   previousReaction: string;
   userTo?: string;
   userFrom?: string;
   type?: string;
-  reactionObject?: IReactionDocument;
+  reactionObject?: ReactionDocument;
 }
 
-export interface IQueryReaction {
+export interface QueryReaction {
   _id?: string | ObjectId;
   postId?: string | ObjectId;
 }
 
-export interface IReaction {
+export interface Reaction {
   senderName: string;
   type: string;
 }
