@@ -58,13 +58,13 @@ export class Update {
       imgId,
     } as PostDocument;
 
-    await postCache.updatePostInCache(postId, updatedPost);
+    const postUpdated = await postCache.updatePostInCache(postId, updatedPost);
 
-    socketIOPostObject.emit('update post', updatedPost, 'posts');
+    socketIOPostObject.emit('update post', postUpdated, 'posts');
 
     postQueue.addPostJob('updatePostInDB', {
       key: postId,
-      value: updatedPost,
+      value: postUpdated,
     });
   }
 
