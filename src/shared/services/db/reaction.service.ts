@@ -1,5 +1,8 @@
 import { PostModel } from '@post/models/post.schema';
-import { ReactionJob } from '@reaction/interfaces/reaction.interface';
+import {
+  ReactionDocument,
+  ReactionJob,
+} from '@reaction/interfaces/reaction.interface';
 import { ReactionModel } from '@reaction/models/reaction.schema';
 import { UserCache } from '@service/redis/user.cache';
 
@@ -17,11 +20,19 @@ class ReactionService {
       reactionObject,
     } = reactionData;
 
+    const reactionObjectAux: ReactionDocument = {
+      ...reactionObject,
+    } as ReactionDocument;
+
+    if (previousReaction && reactionObject) {
+      delete reactionObjectAux._id;
+    }
+
     const updatedReaction = await Promise.all([
       userCache.getUserFromCache(`${userTo}`),
       ReactionModel.replaceOne(
         { postId, type: previousReaction, username },
-        reactionObject,
+        reactionObjectAux,
         { upsert: true }
       ),
       PostModel.findOneAndUpdate(
@@ -30,6 +41,24 @@ class ReactionService {
           $inc: {
             [`reactions.${previousReaction}`]: -1,
             [`reactions.${type}`]: 1,
+          },
+        },
+        { new: true }
+      ),
+    ]);
+  }
+
+  public async removeReactionDataFromDB(
+    reactionData: ReactionJob
+  ): Promise<void> {
+    const { postId, previousReaction, username } = reactionData;
+    await Promise.all([
+      ReactionModel.deleteOne({ postId, type: previousReaction, username }),
+      PostModel.updateOne(
+        { _id: postId },
+        {
+          $inc: {
+            [`reactions.${previousReaction}`]: -1,
           },
         },
         { new: true }
