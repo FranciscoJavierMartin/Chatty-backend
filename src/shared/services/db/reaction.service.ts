@@ -80,7 +80,7 @@ class ReactionService {
     return [reactions, reactions.length];
   }
 
-  public async getSingleReactionByUsername(
+  public async getSinglePostReactionByUsername(
     postId: string,
     username: string
   ): Promise<[ReactionDocument, number] | []> {

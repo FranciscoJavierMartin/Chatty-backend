@@ -42,7 +42,7 @@ export class Get {
       );
     const reactions: [ReactionDocument, number] | [] = cachedReaction.length
       ? cachedReaction
-      : await reactionService.getSingleReactionByUsername(postId, username);
+      : await reactionService.getSinglePostReactionByUsername(postId, username);
 
     res.status(HTTP_STATUS.OK).json({
       message: 'Single post reaction by username',
