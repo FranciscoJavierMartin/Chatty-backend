@@ -39,6 +39,35 @@ export class ReactionCache extends BaseCache {
     }
   }
 
+  public async getReactionsFromCache(
+    postId: string
+  ): Promise<[ReactionDocument[], number]> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+
+      const reactionsCount: number = await this.client.LLEN(
+        `reactions:${postId}`
+      );
+      const response: string[] = await this.client.LRANGE(
+        `reactions:${postId}`,
+        0,
+        -1
+      );
+      const list: ReactionDocument[] = [];
+
+      for (const item of response) {
+        list.push(Helpers.parseJson(item));
+      }
+
+      return response.length ? [list, reactionsCount] : [[], 0];
+    } catch (error) {
+      this.log.error(error);
+      throw new ServerError('Server error. Try again');
+    }
+  }
+
   public async removePostReactionFromCache(
     key: string,
     username: string,
