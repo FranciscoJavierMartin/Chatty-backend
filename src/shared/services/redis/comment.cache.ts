@@ -113,7 +113,8 @@ export class CommentCache extends BaseCache {
 
       return [
         Helpers.parseJson(
-          comments.find((item) => Helpers.parseJson(item)._id === commentId)
+          comments.find((item) => Helpers.parseJson(item)._id === commentId) ||
+            ''
         ),
       ];
     } catch (error) {
