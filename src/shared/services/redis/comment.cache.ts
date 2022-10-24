@@ -1,3 +1,4 @@
+import { CommentDocument } from '@comment/interfaces/comment.interface';
 import { ServerError } from '@global/helpers/error-handler';
 import { Helpers } from '@global/helpers/helpers';
 import { BaseCache } from '@service/redis/base.cache';
@@ -25,6 +26,32 @@ export class CommentCache extends BaseCache {
       count++;
       const dataToSave: string[] = ['commentsCount', count.toString()];
       await this.client.HSET(`posts:${postId}`, dataToSave);
+    } catch (error) {
+      this.log.error(error);
+      throw new ServerError('Server error. Try again');
+    }
+  }
+
+  public async getCommentsFromCache(
+    postId: string
+  ): Promise<CommentDocument[]> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+
+      const reply: string[] = await this.client.LRANGE(
+        `comments:${postId}`,
+        0,
+        -1
+      );
+      const list: CommentDocument[] = [];
+
+      for (const item of reply) {
+        list.push(Helpers.parseJson(item));
+      }
+
+      return list;
     } catch (error) {
       this.log.error(error);
       throw new ServerError('Server error. Try again');
