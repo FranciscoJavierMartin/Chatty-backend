@@ -95,4 +95,30 @@ export class CommentCache extends BaseCache {
       throw new ServerError('Server error. Try again');
     }
   }
+
+  public async getSingleCommentFromCache(
+    postId: string,
+    commentId: string
+  ): Promise<CommentDocument[]> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+
+      const comments: string[] = await this.client.LRANGE(
+        `comments:${postId}`,
+        0,
+        -1
+      );
+
+      return [
+        Helpers.parseJson(
+          comments.find((item) => Helpers.parseJson(item)._id === commentId)
+        ),
+      ];
+    } catch (error) {
+      this.log.error(error);
+      throw new ServerError('Server error. Try again');
+    }
+  }
 }
