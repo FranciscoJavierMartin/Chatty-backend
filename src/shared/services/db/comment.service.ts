@@ -1,6 +1,7 @@
 import {
   CommentDocument,
   CommentJob,
+  QueryComment,
 } from '@comment/interfaces/comment.interface';
 import { CommentsModel } from '@comment/models/comment.schema';
 import { PostDocument } from '@post/interfaces/post.interface';
@@ -12,7 +13,7 @@ import { Query } from 'mongoose';
 const userCache: UserCache = new UserCache();
 
 class CommentService {
-  public async addCommentToDB(commentData: CommentJob) {
+  public async addCommentToDB(commentData: CommentJob): Promise<void> {
     const { postId, userTo, userFrom, comment, username } = commentData;
     const comments: Promise<CommentDocument> = CommentsModel.create(comment);
     const post: Query<PostDocument, PostDocument> = PostModel.findOneAndUpdate(
@@ -31,6 +32,18 @@ class CommentService {
       await Promise.all([comments, post, user]);
 
     //TODO: Send comments notifications
+  }
+
+  public async getPostComments(
+    query: QueryComment,
+    sort: Record<string, 1 | -1>
+  ): Promise<CommentDocument[]> {
+    const comments: CommentDocument[] = await CommentsModel.aggregate([
+      { $match: query },
+      { $sort: sort },
+    ]);
+
+    return comments;
   }
 }
 
