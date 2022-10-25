@@ -1,6 +1,7 @@
 import {
   CommentDocument,
   CommentJob,
+  CommentNameList,
   QueryComment,
 } from '@comment/interfaces/comment.interface';
 import { CommentsModel } from '@comment/models/comment.schema';
@@ -44,6 +45,24 @@ class CommentService {
     ]);
 
     return comments;
+  }
+
+  public async getPostCommentNames(
+    query: QueryComment,
+    sort: Record<string, 1 | -1>
+  ): Promise<CommentNameList[]> {
+    return await CommentsModel.aggregate([
+      { $match: query },
+      { $sort: sort },
+      {
+        $group: {
+          _id: null,
+          names: { $addToSet: '$username' },
+          count: { $sum: 1 },
+        },
+      },
+      { $project: { _id: 0 } },
+    ]);
   }
 }
 
