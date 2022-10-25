@@ -11,7 +11,7 @@ import { commentService } from '@service/db/comment.service';
 const commentCache: CommentCache = new CommentCache();
 
 export class Get {
-  public async comment(req: Request, res: Response): Promise<void> {
+  public async comments(req: Request, res: Response): Promise<void> {
     const { postId } = req.params;
     const cachedComments: CommentDocument[] =
       await commentCache.getCommentsFromCache(postId);
@@ -45,7 +45,10 @@ export class Get {
 
     res
       .status(HTTP_STATUS.OK)
-      .json({ message: 'Post comments names', comments: commentsNames });
+      .json({
+        message: 'Post comments names',
+        comments: commentsNames.length ? commentsNames[0] : [],
+      });
   }
 
   public async singleComment(req: Request, res: Response): Promise<void> {
