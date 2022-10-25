@@ -1,15 +1,8 @@
 import { Request, Response } from 'express';
 import HTTP_STATUS from 'http-status-codes';
-import { ObjectId } from 'mongodb';
 import { joiValidation } from '@global/decorators/joi-validation.decorator';
-import {
-  ReactionDocument,
-  ReactionJob,
-} from '@reaction/interfaces/reaction.interface';
-import {
-  addReactionSchema,
-  removeReactionSchema,
-} from '@reaction/schemes/reactions';
+import { ReactionJob } from '@reaction/interfaces/reaction.interface';
+import { removeReactionSchema } from '@reaction/schemes/reactions';
 import { ReactionCache } from '@service/redis/reaction.cache';
 import { reactionQueue } from '@service/queues/reaction.queue';
 
