@@ -39,7 +39,7 @@ export class FollowerCache extends BaseCache {
   public async updateFollowersCountInCache(
     key: string,
     prop: string,
-    value: string
+    value: number
   ): Promise<void> {
     try {
       if (!this.client.isOpen) {
