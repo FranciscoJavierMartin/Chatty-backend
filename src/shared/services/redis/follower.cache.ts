@@ -35,4 +35,21 @@ export class FollowerCache extends BaseCache {
       throw new ServerError('Server error. Try again');
     }
   }
+
+  public async updateFollowersCountInCache(
+    key: string,
+    prop: string,
+    value: string
+  ): Promise<void> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+
+      await this.client.HINCRBY(`users:${key}`, prop, value);
+    } catch (error) {
+      this.log.error(error);
+      throw new ServerError('Server error. Try again');
+    }
+  }
 }
