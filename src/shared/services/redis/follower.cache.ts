@@ -19,4 +19,20 @@ export class FollowerCache extends BaseCache {
       throw new ServerError('Server error. Try again');
     }
   }
+
+  public async removeFollowerFromCache(
+    key: string,
+    value: string
+  ): Promise<void> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+
+      await this.client.LREM(key, 1, value);
+    } catch (error) {
+      this.log.error(error);
+      throw new ServerError('Server error. Try again');
+    }
+  }
 }
