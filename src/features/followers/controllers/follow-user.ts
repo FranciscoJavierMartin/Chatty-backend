@@ -49,11 +49,11 @@ export class Add {
     socketIOFollowerObject.emit('add follower', addFolloweeData);
 
     const addFollowerToCache: Promise<void> = followerCache.saveFollowerToCache(
-      `followers:${req.currentUser!.userId}`,
+      `following:${req.currentUser!.userId}`,
       followerId
     );
     const addFolloweeToCache: Promise<void> = followerCache.saveFollowerToCache(
-      `following:${followerId}`,
+      `followers:${followerId}`,
       req.currentUser!.userId
     );
     await Promise.all([addFollowerToCache, addFolloweeToCache]);

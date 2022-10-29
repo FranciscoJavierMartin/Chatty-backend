@@ -14,12 +14,12 @@ export class Remove {
 
     const removeFollowerFromCache: Promise<void> =
       followerCache.removeFollowerFromCache(
-        `followers:${req.currentUser!.userId}`,
+        `following:${req.currentUser!.userId}`,
         followeeId
       );
     const removeFolloweeFromCache: Promise<void> =
       followerCache.removeFollowerFromCache(
-        `following:${followeeId}`,
+        `followers:${followeeId}`,
         followerId
       );
 
