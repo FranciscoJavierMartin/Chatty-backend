@@ -21,20 +21,34 @@ class FollowerService {
       followerId: followerObjectId,
     });
 
-    const users: Promise<BulkWriteResult> = UserModel.bulkWrite([
-      {
-        updateOne: {
-          filter: { _id: userId },
-          update: { $inc: { followingCount: 1 } },
+    // FIXME: Circular dependency
+    // const users: Promise<BulkWriteResult> = UserModel.bulkWrite([
+    //   {
+    //     updateOne: {
+    //       filter: { _id: userId },
+    //       update: { $inc: { followingCount: 1 } },
+    //     },
+    //   },
+    //   {
+    //     updateOne: {
+    //       filter: { _id: followeeId },
+    //       update: { $inc: { followersCount: 1 } },
+    //     },
+    //   },
+    // ]);
+
+    const users = [
+      UserModel.findByIdAndUpdate(userId, {
+        $inc: {
+          followingCount: 1,
         },
-      },
-      {
-        updateOne: {
-          filter: { _id: followeeId },
-          update: { $inc: { followersCount: 1 } },
+      }),
+      UserModel.findByIdAndUpdate(followeeId, {
+        $inc: {
+          followersCount: 1,
         },
-      },
-    ]);
+      }),
+    ];
 
     await Promise.all([users, UserModel.findOne({ _id: followeeId })]);
   }
@@ -52,20 +66,34 @@ class FollowerService {
         followerId: followerObjectId,
       });
 
-    const users: Promise<BulkWriteResult> = UserModel.bulkWrite([
-      {
-        updateOne: {
-          filter: { _id: followerObjectId },
-          update: { $inc: { followingCount: -1 } },
+    // FIXME: Circular dependency
+    // const users: Promise<BulkWriteResult> = UserModel.bulkWrite([
+    //   {
+    //     updateOne: {
+    //       filter: { _id: followerObjectId },
+    //       update: { $inc: { followingCount: -1 } },
+    //     },
+    //   },
+    //   {
+    //     updateOne: {
+    //       filter: { _id: followeeId },
+    //       update: { $inc: { followersCount: -1 } },
+    //     },
+    //   },
+    // ]);
+
+    const users = [
+      UserModel.findByIdAndUpdate(followerObjectId, {
+        $inc: {
+          followingCount: -1,
         },
-      },
-      {
-        updateOne: {
-          filter: { _id: followeeId },
-          update: { $inc: { followersCount: -1 } },
+      }),
+      UserModel.findByIdAndUpdate(followeeId, {
+        $inc: {
+          followersCount: -1,
         },
-      },
-    ]);
+      }),
+    ];
 
     await Promise.all([unfollow, users]);
   }
