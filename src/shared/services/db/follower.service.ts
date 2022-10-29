@@ -104,8 +104,8 @@ class FollowerService {
   public async getFolloweesData(
     userObjectId: ObjectId
   ): Promise<FollowerData[]> {
-    const followees = await FollowerModel.aggregate([
-      { $match: { follower: userObjectId } },
+    const followees: FollowerData[] = await FollowerModel.aggregate([
+      { $match: { followerId: userObjectId } },
       {
         $lookup: {
           from: 'User',
@@ -149,6 +149,56 @@ class FollowerService {
     ]);
 
     return followees;
+  }
+
+  public async getFollowersData(
+    userObjectId: ObjectId
+  ): Promise<FollowerData[]> {
+    const followers: FollowerData[] = await FollowerModel.aggregate([
+      { $match: { followeeId: userObjectId } },
+      {
+        $lookup: {
+          from: 'User',
+          localField: 'followeeId',
+          foreignField: '_id',
+          as: 'followeeId',
+        },
+      },
+      { $unwind: '$followeeId' },
+      {
+        $lookup: {
+          from: 'Auth',
+          localField: 'followeeId.authId',
+          foreignField: '_id',
+          as: 'authId',
+        },
+      },
+      { $unwind: '$authId' },
+      {
+        $addFields: {
+          _id: '$followeeId._id',
+          username: '$authId.username',
+          avatarColor: '$authId.avatarColor',
+          uId: '$authId.uId',
+          postCount: '$authId.postCount',
+          followersCount: '$authId.followersCount',
+          followingCount: '$authId.followingCount',
+          profilePicture: '$authId.profilePicture',
+          userProfile: '$followeeId',
+        },
+      },
+      {
+        $project: {
+          authId: 0,
+          followerId: 0,
+          followeeId: 0,
+          createdAt: 0,
+          __v: 0,
+        },
+      },
+    ]);
+
+    return followers;
   }
 }
 
