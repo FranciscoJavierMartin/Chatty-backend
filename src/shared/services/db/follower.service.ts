@@ -1,7 +1,10 @@
 import mongoose, { Query } from 'mongoose';
 import { ObjectId, BulkWriteResult } from 'mongodb';
 import { UserModel } from '@user/models/user.schema';
-import { FollowerDocument } from '@follower/interfaces/follower.interface';
+import {
+  FollowerData,
+  FollowerDocument,
+} from '@follower/interfaces/follower.interface';
 import { FollowerModel } from '@follower/models/follower.schema';
 import { QueryComplete, QueryDeleted } from '@post/interfaces/post.interface';
 
@@ -96,6 +99,56 @@ class FollowerService {
     ];
 
     await Promise.all([unfollow, users]);
+  }
+
+  public async getFolloweesData(
+    userObjectId: ObjectId
+  ): Promise<FollowerData[]> {
+    const followees = await FollowerModel.aggregate([
+      { $match: { follower: userObjectId } },
+      {
+        $lookup: {
+          from: 'User',
+          localField: 'followeeId',
+          foreignField: '_id',
+          as: 'followeeId',
+        },
+      },
+      { $unwind: '$followeeId' },
+      {
+        $lookup: {
+          from: 'Auth',
+          localField: 'followeeId.authId',
+          foreignField: '_id',
+          as: 'authId',
+        },
+      },
+      { $unwind: '$authId' },
+      {
+        $addFields: {
+          _id: '$followeeId._id',
+          username: '$authId.username',
+          avatarColor: '$authId.avatarColor',
+          uId: '$authId.uId',
+          postCount: '$authId.postCount',
+          followersCount: '$authId.followersCount',
+          followingCount: '$authId.followingCount',
+          profilePicture: '$authId.profilePicture',
+          userProfile: '$followeeId',
+        },
+      },
+      {
+        $project: {
+          authId: 0,
+          followerId: 0,
+          followeeId: 0,
+          createdAt: 0,
+          __v: 0,
+        },
+      },
+    ]);
+
+    return followees;
   }
 }
 
