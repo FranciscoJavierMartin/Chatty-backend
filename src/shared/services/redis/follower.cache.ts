@@ -1,6 +1,12 @@
+import { FollowerData } from '@follower/interfaces/follower.interface';
 import { ServerError } from '@global/helpers/error-handler';
 import { Helpers } from '@global/helpers/helpers';
 import { BaseCache } from '@service/redis/base.cache';
+import { UserDocument } from '@user/interfaces/user.interface';
+import mongoose from 'mongoose';
+import { UserCache } from './user.cache';
+
+const userCache: UserCache = new UserCache();
 
 export class FollowerCache extends BaseCache {
   constructor() {
@@ -47,6 +53,39 @@ export class FollowerCache extends BaseCache {
       }
 
       await this.client.HINCRBY(`users:${key}`, prop, value);
+    } catch (error) {
+      this.log.error(error);
+      throw new ServerError('Server error. Try again');
+    }
+  }
+
+  public async getFollowersFromCache(key: string): Promise<FollowerData[]> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+
+      const response: string[] = await this.client.LRANGE(key, 0, -1);
+      const list: FollowerData[] = [];
+      for (const item of response) {
+        const user: UserDocument = (await userCache.getUserFromCache(
+          item
+        )) as UserDocument;
+        const data: FollowerData = {
+          _id: new mongoose.Types.ObjectId(user._id),
+          username: user.username!,
+          avatarColor: user.avatarColor!,
+          postCount: user.postsCount,
+          followersCount: user.followersCount,
+          followingCount: user.followingCount,
+          profilePicture: user.profilePicture,
+          uId: user.uId!,
+          userProfile: user,
+        };
+        list.push(data);
+      }
+
+      return list;
     } catch (error) {
       this.log.error(error);
       throw new ServerError('Server error. Try again');
