@@ -28,6 +28,33 @@ class BlockUserService {
       ),
     ]);
   }
+
+  public async unblockUser(userId: string, followerId: string): Promise<void> {
+    await Promise.all([
+      UserModel.findOneAndUpdate(
+        {
+          _id: userId,
+          blocked: new mongoose.Types.ObjectId(followerId),
+        },
+        {
+          $pull: {
+            blocked: new mongoose.Types.ObjectId(followerId),
+          },
+        }
+      ),
+      UserModel.findOneAndUpdate(
+        {
+          _id: followerId,
+          blockedBy: new mongoose.Types.ObjectId(userId),
+        },
+        {
+          $pull: {
+            blockedBy: new mongoose.Types.ObjectId(userId),
+          },
+        }
+      ),
+    ]);
+  }
 }
 
 export const blockUserService: BlockUserService = new BlockUserService();
