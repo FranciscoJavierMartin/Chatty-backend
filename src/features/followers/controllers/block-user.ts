@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import HTTP_STATUS from 'http-status-codes';
 import { FollowerCache } from '@service/redis/follower.cache';
-import { blockedQueue } from '@service/queues/blocked.queue';
+import { blockedUserQueue } from '@service/queues/blocked.queue';
 
 const followerCache: FollowerCache = new FollowerCache();
 
@@ -13,7 +13,7 @@ export class AddUser {
       req.currentUser!.userId,
       'block'
     );
-    blockedQueue.addBlockedUserJob('addBlockedUserToDB', {
+    blockedUserQueue.addBlockedUserJob('addBlockedUserToDB', {
       keyOne: req.currentUser!.userId,
       keyTwo: followerId,
       type: 'block',
@@ -29,7 +29,7 @@ export class AddUser {
       req.currentUser!.userId,
       'unblock'
     );
-    blockedQueue.addBlockedUserJob('addBlockedUserToDB', {
+    blockedUserQueue.addBlockedUserJob('addBlockedUserToDB', {
       keyOne: req.currentUser!.userId,
       keyTwo: followerId,
       type: 'unblock',

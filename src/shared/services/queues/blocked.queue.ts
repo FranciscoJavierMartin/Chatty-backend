@@ -2,7 +2,7 @@ import { BaseQueue } from '@service/queues/base.queue';
 import { BlockedUserJobData } from '@follower/interfaces/follower.interface';
 import { blockedWorker } from '@worker/blocked.worker';
 
-class BlockedQueue extends BaseQueue {
+class BlockedUserQueue extends BaseQueue {
   constructor() {
     super('block');
     this.processJob('addBlockedUserToDB', 5, blockedWorker.addBlockedUserToDB);
@@ -13,4 +13,4 @@ class BlockedQueue extends BaseQueue {
   }
 }
 
-export const blockedQueue: BlockedQueue = new BlockedQueue();
+export const blockedUserQueue: BlockedUserQueue = new BlockedUserQueue();
