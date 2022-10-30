@@ -104,7 +104,7 @@ export class FollowerCache extends BaseCache {
       }
 
       const response: string = (await this.client.HGET(
-        `users${key}`,
+        `users:${key}`,
         prop
       )) as string;
       const multi: ReturnType<typeof this.client.multi> = this.client.multi();
@@ -113,7 +113,7 @@ export class FollowerCache extends BaseCache {
       if (type === 'block') {
         blocked = [...blocked, value];
       } else {
-        blocked = blocked.filter((id) => id === value);
+        blocked = blocked.filter((id) => id !== value);
       }
 
       const dataToSave: string[] = [`${prop}`, JSON.stringify(blocked)];

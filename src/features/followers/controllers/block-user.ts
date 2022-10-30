@@ -35,7 +35,7 @@ export class AddUser {
       type: 'unblock',
     });
 
-    res.status(HTTP_STATUS.OK).json({ message: 'User blocked' });
+    res.status(HTTP_STATUS.OK).json({ message: 'User unblocked' });
   }
 
   private async updateBlockedUser(
