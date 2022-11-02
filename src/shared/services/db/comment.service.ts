@@ -40,7 +40,6 @@ class CommentService {
     const response: [CommentDocument, PostDocument, UserDocument] =
       await Promise.all([comments, post, user]);
 
-    //TODO: Send comments notifications
     if (response[2].notifications.comments && userFrom !== userTo) {
       const notificationModel: NotificationDocument = new NotificationModel();
 
