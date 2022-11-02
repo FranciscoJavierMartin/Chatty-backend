@@ -39,7 +39,7 @@ export interface NotificationJobData {
   key?: string;
 }
 
-export interface NotificationTemplate {
+export interface NotificationTemplateParams {
   username: string;
   message: string;
   header: string;
