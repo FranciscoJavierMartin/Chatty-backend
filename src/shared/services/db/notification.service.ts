@@ -58,6 +58,16 @@ class NotificationService {
 
     return notifications;
   }
+
+  public async updateNotification(notificationId: string): Promise<void> {
+    await NotificationModel.findByIdAndUpdate(notificationId, {
+      $set: { read: true },
+    }).exec();
+  }
+
+  public async deleteNotification(notificationId: string): Promise<void> {
+    await NotificationModel.findByIdAndDelete(notificationId).exec();
+  }
 }
 
 export const notificationService: NotificationService =

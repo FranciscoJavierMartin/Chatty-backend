@@ -9,8 +9,21 @@ import { EmailJob } from '@user/interfaces/user.interface';
 import { PostJobData } from '@post/interfaces/post.interface';
 import { ReactionJob } from '@reaction/interfaces/reaction.interface';
 import { CommentJob } from '@comment/interfaces/comment.interface';
+import {
+  BlockedUserJobData,
+  FollowerJobData,
+} from '@follower/interfaces/follower.interface';
+import { NotificationJobData } from '@notification/interfaces/notification.interface';
 
-type BaseJobData = AuthJob | EmailJob | PostJobData | ReactionJob | CommentJob;
+type BaseJobData =
+  | AuthJob
+  | EmailJob
+  | PostJobData
+  | ReactionJob
+  | CommentJob
+  | FollowerJobData
+  | BlockedUserJobData
+  | NotificationJobData;
 
 let bullAdapters: BullAdapter[] = [];
 
