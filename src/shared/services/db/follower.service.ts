@@ -16,6 +16,9 @@ import {
 import { NotificationModel } from '@notification/models/notification.schema';
 import { notificationTemplate } from '@service/emails/templates/notifications/notification-template';
 import { emailQueue } from '@service/queues/email.queue';
+import { UserCache } from '@service/redis/user.cache';
+
+const userCache: UserCache = new UserCache();
 
 class FollowerService {
   public async addFollowerToDB(
@@ -64,7 +67,7 @@ class FollowerService {
 
     const response: UserDocument[] = (await Promise.all([
       users,
-      UserModel.findOne({ _id: followeeId }),
+      userCache.getUserFromCache(followeeId),
     ])) as UserDocument[];
 
     if (response[1].notifications.follows && userId !== followeeId) {
