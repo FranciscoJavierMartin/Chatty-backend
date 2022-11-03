@@ -8,6 +8,16 @@ import {
 import { ReactionModel } from '@reaction/models/reaction.schema';
 import { UserCache } from '@service/redis/user.cache';
 import { Helpers } from '@global/helpers/helpers';
+import {
+  NotificationDocument,
+  NotificationTemplateParams,
+} from '@notification/interfaces/notification.interface';
+import { NotificationModel } from '@notification/models/notification.schema';
+import { socketIONotificationObject } from '@socket/notification';
+import { notificationTemplate } from '@service/emails/templates/notifications/notification-template';
+import { emailQueue } from '@service/queues/email.queue';
+import { UserDocument } from '@user/interfaces/user.interface';
+import { PostDocument } from '@post/interfaces/post.interface';
 
 const userCache: UserCache = new UserCache();
 
@@ -31,7 +41,11 @@ class ReactionService {
       delete reactionObjectAux._id;
     }
 
-    const updatedReaction = await Promise.all([
+    const updatedReaction: [
+      UserDocument | null,
+      ReactionDocument,
+      PostDocument
+    ] = (await Promise.all([
       userCache.getUserFromCache(`${userTo}`),
       ReactionModel.replaceOne(
         { postId, type: previousReaction, username },
@@ -48,7 +62,45 @@ class ReactionService {
         },
         { new: true }
       ),
-    ]);
+    ])) as unknown as [UserDocument, ReactionDocument, PostDocument];
+
+    if (updatedReaction[0]?.notifications.reactions && userTo !== userFrom) {
+      const notificationModel: NotificationDocument = new NotificationModel();
+
+      const notifications = await notificationModel.insertNotification({
+        userFrom: userFrom!,
+        userTo: userTo!,
+        message: `${username} reacted to your post`,
+        notificationType: 'reactions',
+        entityId: new mongoose.Types.ObjectId(postId),
+        createdItemId: new mongoose.Types.ObjectId(updatedReaction[1]._id!),
+        createdAt: new Date(),
+        comment: '',
+        post: updatedReaction[2].post,
+        imgId: updatedReaction[2].imgId ?? '',
+        imgVersion: updatedReaction[2].imgVersion ?? '',
+        gifUrl: updatedReaction[2].gifUrl ?? '',
+        reaction: type!,
+      });
+
+      socketIONotificationObject.emit('insert notification', notifications, {
+        userTo,
+      });
+
+      const templateParams: NotificationTemplateParams = {
+        username: updatedReaction[0].username!,
+        message: `${username} reacted to your post`,
+        header: 'Post reaction notification',
+      };
+
+      const template: string =
+        notificationTemplate.getNotificationTemplate(templateParams);
+      emailQueue.addEmailJob('reactionsEmail', {
+        receiverEmail: updatedReaction[0].email!,
+        template,
+        subject: 'Post reaction notification',
+      });
+    }
   }
 
   public async removeReactionDataFromDB(
