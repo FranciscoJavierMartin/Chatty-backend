@@ -1,7 +1,13 @@
 import { ServerError } from '@global/helpers/error-handler';
 import { Helpers } from '@global/helpers/helpers';
 import { BaseCache } from '@service/redis/base.cache';
-import { UserDocument } from '@user/interfaces/user.interface';
+import {
+  NotificationSettings,
+  SocialLinks,
+  UserDocument,
+} from '@user/interfaces/user.interface';
+
+type UserItem = string | SocialLinks | NotificationSettings;
 
 export class UserCache extends BaseCache {
   constructor() {
@@ -113,6 +119,28 @@ export class UserCache extends BaseCache {
       response.followersCount = Helpers.parseJson(`${response.followersCount}`);
       response.followingCount = Helpers.parseJson(`${response.followingCount}`);
 
+      return response;
+    } catch (error) {
+      this.log.error(error);
+      throw new ServerError('Server error. Try again');
+    }
+  }
+
+  public async updateSingleUserItemInCache(
+    userId: string,
+    prop: string,
+    value: UserItem
+  ): Promise<UserDocument | null> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+
+      const dataToSave: string[] = [`${prop}`, JSON.stringify(value)];
+      await this.client.HSET(`users:${userId}`, dataToSave);
+      const response: UserDocument = (await this.getUserFromCache(
+        userId
+      )) as UserDocument;
       return response;
     } catch (error) {
       this.log.error(error);
