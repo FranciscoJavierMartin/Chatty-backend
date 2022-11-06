@@ -8,6 +8,6 @@ export class Get {
     const images: FileImageDocument[] = await imageService.getImages(
       req.params.userId
     );
-    res.status(HTTP_STATUS.OK).json({ message: 'user images', images });
+    res.status(HTTP_STATUS.OK).json({ message: 'User images', images });
   }
 }
