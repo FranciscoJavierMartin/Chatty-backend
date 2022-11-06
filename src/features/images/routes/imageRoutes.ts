@@ -1,6 +1,7 @@
 import express, { Router } from 'express';
 import { authMiddleware } from '@global/middlewares/auth-middleware';
 import { Add } from '@image/controllers/add-image';
+import { Delete } from '@image/controllers/delete-image';
 
 class ImageRoutes {
   private router: Router;
@@ -20,6 +21,18 @@ class ImageRoutes {
       '/images/background',
       authMiddleware.checkAuthentication,
       Add.prototype.backgroundImage
+    );
+
+    this.router.delete(
+      '/images/:imageId',
+      authMiddleware.checkAuthentication,
+      Delete.prototype.image
+    );
+
+    this.router.delete(
+      '/images/background/:bgImageId',
+      authMiddleware.checkAuthentication,
+      Delete.prototype.backgroundImage
     );
 
     return this.router;
