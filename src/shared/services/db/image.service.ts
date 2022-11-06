@@ -31,14 +31,14 @@ class ImageService {
     userId: string,
     imgId: string,
     imgVersion: string,
-    type: 'background' | 'profile'
+    type?: 'background' | 'profile'
   ): Promise<void> {
     await ImageModel.create({
       userId,
       bgImageId: type === 'background' ? imgId : '',
       bgImageVersion: type === 'background' ? imgVersion : '',
-      imageId: type === 'profile' ? imgId : '',
-      imageVersion: type === 'profile' ? imgVersion : '',
+      imgId,
+      imgVersion,
     });
   }
 
