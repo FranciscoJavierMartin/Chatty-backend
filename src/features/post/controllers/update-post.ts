@@ -9,6 +9,7 @@ import { PostDocument } from '@post/interfaces/post.interface';
 import { socketIOPostObject } from '@socket/post';
 import { uploads } from '@global/helpers/cloudinary-upload';
 import { BadRequestError } from '@global/helpers/error-handler';
+import { imageQueue } from '@service/queues/image.queue';
 
 const postCache: PostCache = new PostCache();
 
@@ -100,6 +101,14 @@ export class Update {
       key: postId,
       value: updatedPost,
     });
+
+    if (image) {
+      imageQueue.addImageJob('addImageToDb', {
+        key: req.currentUser!.userId,
+        imgId: result.public_id,
+        imgVersion: result.version.toString(),
+      });
+    }
 
     return result;
   }

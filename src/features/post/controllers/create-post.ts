@@ -10,6 +10,7 @@ import { postSchema, postWithImageSchema } from '@post/schemas/post.schemes';
 import { postQueue } from '@service/queues/post.queue';
 import { PostCache } from '@service/redis/post.cache';
 import { socketIOPostObject } from '@socket/post';
+import { imageQueue } from '@service/queues/image.queue';
 
 const postCache: PostCache = new PostCache();
 
@@ -117,6 +118,12 @@ export class Create {
     postQueue.addPostJob('addPostToDB', {
       key: req.currentUser!.userId,
       value: createdPost,
+    });
+
+    imageQueue.addImageJob('addImageToDb', {
+      key: req.currentUser!.userId,
+      imgId: result.public_id,
+      imgVersion: result.version.toString(),
     });
 
     res
