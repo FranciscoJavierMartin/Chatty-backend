@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import { ObjectId } from 'mongodb';
 import { UserModel } from '@user/models/user.schema';
 import { ImageModel } from '@image/models/image.schema';
 import { FileImageDocument } from '@image/interfaces/image.interface';
@@ -55,7 +55,9 @@ class ImageService {
   }
 
   public async getImages(userId: string): Promise<FileImageDocument[]> {
-    return await ImageModel.aggregate([{ $match: { userId } }]);
+    return await ImageModel.aggregate([
+      { $match: { userId: new ObjectId(userId) } },
+    ]);
   }
 }
 

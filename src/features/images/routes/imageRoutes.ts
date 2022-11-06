@@ -2,6 +2,7 @@ import express, { Router } from 'express';
 import { authMiddleware } from '@global/middlewares/auth-middleware';
 import { Add } from '@image/controllers/add-image';
 import { Delete } from '@image/controllers/delete-image';
+import { Get } from '@image/controllers/get-images';
 
 class ImageRoutes {
   private router: Router;
@@ -11,6 +12,12 @@ class ImageRoutes {
   }
 
   public routes(): Router {
+    this.router.get(
+      '/images/:userId',
+      authMiddleware.checkAuthentication,
+      Get.prototype.images
+    );
+
     this.router.post(
       '/images/profile',
       authMiddleware.checkAuthentication,
