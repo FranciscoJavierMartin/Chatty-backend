@@ -5,6 +5,7 @@ import { UserDocument } from '@user/interfaces/user.interface';
 import { socketIOImageObject } from '@socket/image';
 import { imageQueue } from '@service/queues/image.queue';
 import { imageService } from '@service/db/image.service';
+import { FileImageDocument } from '@image/interfaces/image.interface';
 
 const userCache: UserCache = new UserCache();
 
@@ -21,31 +22,28 @@ export class Delete {
   }
 
   public async backgroundImage(req: Request, res: Response): Promise<void> {
-    const { bgImageId } = req.params;
-
-    await imageService.removeImageFromDB(bgImageId);
-    socketIOImageObject.emit('delete image', bgImageId);
-
-    const bgImageIdPromise: Promise<UserDocument | null> =
+    const image: FileImageDocument | null =
+      await imageService.getImageByBackgroundId(req.params.bgImageId);
+    socketIOImageObject.emit('delete image', image?._id);
+    const bgImageId: Promise<UserDocument> =
       userCache.updateSingleUserItemInCache(
-        req.currentUser!.userId,
+        `${req.currentUser!.userId}`,
         'bgImageId',
         ''
-      );
-
-    const bgImageVersionPromise: Promise<UserDocument | null> =
+      ) as Promise<UserDocument>;
+    const bgImageVersion: Promise<UserDocument> =
       userCache.updateSingleUserItemInCache(
-        req.currentUser!.userId,
+        `${req.currentUser!.userId}`,
         'bgImageVersion',
         ''
-      );
-
-    await Promise.all([bgImageIdPromise, bgImageVersionPromise]);
-
+      ) as Promise<UserDocument>;
+    (await Promise.all([bgImageId, bgImageVersion])) as [
+      UserDocument,
+      UserDocument
+    ];
     imageQueue.addImageJob('removeImageFromDB', {
-      imageId: bgImageId,
+      imageId: image?._id,
     });
-
     res.status(HTTP_STATUS.OK).json({ message: 'Image deleted successfully' });
   }
 }
