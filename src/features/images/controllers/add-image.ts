@@ -10,6 +10,8 @@ import { BadRequestError } from '@global/helpers/error-handler';
 import { UserDocument } from '@user/interfaces/user.interface';
 import { socketIOImageObject } from '@socket/image';
 import { imageQueue } from '@service/queues/image.queue';
+import { BgUploadResponse } from '@image/interfaces/image.interface';
+import { Helpers } from '@global/helpers/helpers';
 
 const userCache: UserCache = new UserCache();
 
@@ -45,5 +47,65 @@ export class Add {
     });
 
     res.status(HTTP_STATUS.OK).json({ message: 'Image added successfully' });
+  }
+
+  @joiValidation(addImageSchema)
+  public async backgroundImage(req: Request, res: Response): Promise<void> {
+    const { version, publicId }: BgUploadResponse =
+      await Add.prototype.backgroundUpload(req.body.image);
+
+    const bgImageId: Promise<UserDocument | null> =
+      userCache.updateSingleUserItemInCache(
+        req.currentUser!.userId,
+        'bgImageId',
+        publicId
+      );
+
+    const bgImageVersion: Promise<UserDocument | null> =
+      userCache.updateSingleUserItemInCache(
+        req.currentUser!.userId,
+        'bgImageVersion',
+        version
+      );
+
+    const response = await Promise.all([bgImageId, bgImageVersion]);
+
+    socketIOImageObject.emit('update user', {
+      bgImageId: publicId,
+      bgImageVersion: version,
+      userId: response[0],
+    });
+
+    imageQueue.addImageJob('updateBGImageInDB', {
+      key: req.currentUser!.userId,
+      imgId: publicId,
+      imgVersion: version,
+    });
+
+    res.status(HTTP_STATUS.OK).json({ message: 'Image added successfully' });
+  }
+
+  private async backgroundUpload(image: string): Promise<BgUploadResponse> {
+    const isDataURL = Helpers.isDataURL(image);
+    let version: string;
+    let publicId: string;
+
+    if (isDataURL) {
+      const result: UploadApiResponse = (await uploads(
+        image
+      )) as UploadApiResponse;
+      if (result.public_id) {
+        version = result.version.toString();
+        publicId = result.public_id;
+      } else {
+        throw new BadRequestError(result.message);
+      }
+    } else {
+      const value = image.split('/');
+      version = value[value.length - 2];
+      publicId = value[value.length - 1];
+    }
+
+    return { version: version.replace(/v/g, ''), publicId };
   }
 }
