@@ -9,8 +9,15 @@ import { UserDocument } from '@user/interfaces/user.interface';
 import { UploadApiResponse } from 'cloudinary';
 import { uploads } from '@global/helpers/cloudinary-upload';
 import { BadRequestError } from '@global/helpers/error-handler';
-import { MessageData } from '@chat/interfaces/chat.interface';
+import { emailQueue } from '@service/queues/email.queue';
+import {
+  MessageData,
+  MessageNotification,
+} from '@chat/interfaces/chat.interface';
 import { config } from '@root/config';
+import { socketIOChatObject } from '@socket/chat';
+import { NotificationTemplateParams } from '@notification/interfaces/notification.interface';
+import { notificationTemplate } from '@service/emails/templates/notifications/notification-template';
 
 const userCache: UserCache = new UserCache();
 
@@ -76,5 +83,57 @@ export class Add {
       deleteForEveryone: false,
       deleteForMe: false,
     };
+
+    Add.prototype.emitSocketIOEvent(messageData);
+
+    if (!isRead) {
+      Add.prototype.messageNotification({
+        currentUser: req.currentUser!,
+        message: body,
+        receiverId,
+        receiverName: receiverUsername,
+        messageData,
+      });
+    }
+
+    // TODO: Add sender to chat list in cache
+    // TODO: Add receiver to chat list in cache
+    // TODO: Add message data to cache
+    // TODO: Add message to chat queue
+
+    res
+      .status(HTTP_STATUS.OK)
+      .json({ message: 'Message added', conversationId: conversationObjectId });
+  }
+
+  private emitSocketIOEvent(data: MessageData): void {
+    socketIOChatObject.emit('message received', data);
+    socketIOChatObject.emit('chat list', data);
+  }
+
+  private async messageNotification({
+    currentUser,
+    message,
+    receiverName,
+    receiverId,
+  }: MessageNotification): Promise<void> {
+    const cachedUser: UserDocument = (await userCache.getUserFromCache(
+      receiverId
+    )) as UserDocument;
+
+    if (cachedUser.notifications.messages) {
+      const templateParams: NotificationTemplateParams = {
+        username: receiverName,
+        message,
+        header: `Message notification from ${currentUser.username}`,
+      };
+      const template: string =
+        notificationTemplate.getNotificationTemplate(templateParams);
+      emailQueue.addEmailJob('directMessageEmail', {
+        receiverEmail: currentUser.email,
+        template,
+        subject: `You've received messages from ${receiverName}`,
+      });
+    }
   }
 }

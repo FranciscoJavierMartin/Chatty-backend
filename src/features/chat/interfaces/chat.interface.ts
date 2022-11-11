@@ -76,14 +76,14 @@ export interface ChatJobData {
   type?: string;
 }
 
-export interface ISenderReceiver {
+export interface SenderReceiver {
   senderId: string;
   receiverId: string;
   senderName: string;
   receiverName: string;
 }
 
-export interface IGetMessageFromCache {
+export interface GetMessageFromCache {
   index: number;
   message: string;
   receiver: ChatList;
