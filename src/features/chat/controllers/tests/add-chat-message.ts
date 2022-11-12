@@ -19,6 +19,7 @@ import { socketIOChatObject } from '@socket/chat';
 import { NotificationTemplateParams } from '@notification/interfaces/notification.interface';
 import { notificationTemplate } from '@service/emails/templates/notifications/notification-template';
 import { MessageCache } from '@service/redis/message.cache';
+import { chatQueue } from '@service/queues/chat.queue';
 
 const userCache: UserCache = new UserCache();
 const messageCache: MessageCache = new MessageCache();
@@ -61,7 +62,6 @@ export class Add {
         throw new BadRequestError(result.message);
       }
 
-      // TODO: cloudinary url
       fileUrl = `https://res.cloudinary.com/${config.CLOUDINARY_CLOUD_NAME}/image/upload/v${result.version}/${result.public_id}`;
     }
 
@@ -113,7 +113,7 @@ export class Add {
       messageData
     );
 
-    // TODO: Add message to chat queue
+    chatQueue.addChatJob('addChatMessageToDB', messageData);
 
     res
       .status(HTTP_STATUS.OK)
