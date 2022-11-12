@@ -16,6 +16,18 @@ class ChatRoutes {
       Add.prototype.message
     );
 
+    this.router.post(
+      '/chat/message/add-chat-users',
+      authMiddleware.checkAuthentication,
+      Add.prototype.addChatUsers
+    );
+
+    this.router.delete(
+      '/chat/message/remove-chat-users',
+      authMiddleware.checkAuthentication,
+      Add.prototype.removeChatUsers
+    );
+
     return this.router;
   }
 }

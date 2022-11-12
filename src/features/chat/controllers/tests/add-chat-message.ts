@@ -98,25 +98,38 @@ export class Add {
       });
     }
 
-    // TODO: Add sender to chat list in cache
-    // TODO: Add receiver to chat list in cache
-    // TODO: Add message data to cache
-    // TODO: Add message to chat queue
+    await messageCache.addChatListToCache(
+      req.currentUser!.userId,
+      receiverId,
+      conversationObjectId.toString()
+    );
+    await messageCache.addChatListToCache(
+      receiverId,
+      req.currentUser!.userId,
+      conversationObjectId.toString()
+    );
+    await messageCache.addChatMessageToCache(
+      conversationObjectId.toString(),
+      messageData
+    );
 
-    await messageCache.addChatListToCache(
-      req.currentUser!.userId,
-      receiverId,
-      conversationObjectId.toString()
-    );
-    await messageCache.addChatListToCache(
-      receiverId,
-      req.currentUser!.userId,
-      conversationObjectId.toString()
-    );
+    // TODO: Add message to chat queue
 
     res
       .status(HTTP_STATUS.OK)
       .json({ message: 'Message added', conversationId: conversationObjectId });
+  }
+
+  public async addChatUsers(req: Request, res: Response): Promise<void> {
+    const chatUsers = await messageCache.addChatUsersToCache(req.body);
+    socketIOChatObject.emit('add chat users', chatUsers);
+    res.status(HTTP_STATUS.OK).json({ message: 'Users added' });
+  }
+
+  public async removeChatUsers(req: Request, res: Response): Promise<void> {
+    const chatUsers = await messageCache.removeChatUsersFromCache(req.body);
+    socketIOChatObject.emit('add chat users', chatUsers);
+    res.status(HTTP_STATUS.OK).json({ message: 'Users removed' });
   }
 
   private emitSocketIOEvent(data: MessageData): void {
