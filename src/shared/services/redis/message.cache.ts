@@ -1,4 +1,8 @@
-import { ChatUsers, MessageData } from '@chat/interfaces/chat.interface';
+import {
+  ChatList,
+  ChatUsers,
+  MessageData,
+} from '@chat/interfaces/chat.interface';
 import { ServerError } from '@global/helpers/error-handler';
 import { Helpers } from '@global/helpers/helpers';
 import { BaseCache } from '@service/redis/base.cache';
@@ -110,6 +114,34 @@ export class MessageCache extends BaseCache {
       }
 
       return chatUsers;
+    } catch (error) {
+      this.log.error(error);
+      throw new ServerError('Server error. Try again');
+    }
+  }
+
+  public async getUserConversationList(key: string): Promise<MessageData[]> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      const userChatlist: string[] = await this.client.LRANGE(
+        `chatList:${key}`,
+        0,
+        -1
+      );
+      const conversationChatList: MessageData[] = [];
+
+      for (const item of userChatlist) {
+        const chatItem: ChatList = Helpers.parseJson(item);
+        const lastMessage: string = (await this.client.LINDEX(
+          `messages:${chatItem.conversationId}`,
+          -1
+        ))!;
+        conversationChatList.push(Helpers.parseJson(lastMessage));
+      }
+
+      return conversationChatList;
     } catch (error) {
       this.log.error(error);
       throw new ServerError('Server error. Try again');

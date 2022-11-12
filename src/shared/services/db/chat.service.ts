@@ -2,6 +2,7 @@ import { MessageData } from '@chat/interfaces/chat.interface';
 import { ConversationDocument } from '@chat/interfaces/conversation.interface';
 import { MessageModel } from '@chat/models/chat.schema';
 import { ConversationModel } from '@chat/models/conversation.shema';
+import { ObjectId } from 'mongodb';
 
 class ChatService {
   public async addMessageToDB(data: MessageData): Promise<void> {
@@ -35,6 +36,45 @@ class ChatService {
       reaction: data.reaction,
       createdAt: data.createdAt,
     });
+  }
+
+  public async getUserConversationList(
+    userId: ObjectId
+  ): Promise<MessageData[]> {
+    const messages: MessageData[] = await MessageModel.aggregate([
+      { $match: { $or: [{ senderId: userId }, { $receiverId: userId }] } },
+      {
+        $group: {
+          _id: '$conversationId',
+          result: {
+            $last: '$$ROOT',
+          },
+        },
+      },
+      {
+        $project: {
+          _id: '$result._id',
+          conversationId: '$result.conversationId',
+          receiverId: '$result.receiverId',
+          receiverUsername: '$result.receiverUsername',
+          receiverProfilePicture: '$result.receiverProfilePicture',
+          receiverAvatarColor: '$result.receiverAvatarColor',
+          senderId: '$result.senderId',
+          senderUsername: '$result.senderUsername',
+          senderAvatarColor: '$result.senderAvatarColor',
+          senderProfilePicture: '$result.senderProfilePicture',
+          body: '$result.body',
+          isRead: '$result.isRead',
+          gifUrl: '$result.gifUrl',
+          selectedImage: '$result.selectedImage',
+          reaction: '$result.reaction',
+          createdAt: '$result.createdAt',
+        },
+      },
+      { $sort: { createdAt: 1 } },
+    ]);
+
+    return messages;
   }
 }
 
