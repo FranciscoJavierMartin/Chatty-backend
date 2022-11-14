@@ -232,6 +232,56 @@ export class MessageCache extends BaseCache {
     }
   }
 
+  public async updateChatMessages(
+    senderId: string,
+    receiverId: string
+  ): Promise<MessageData> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+
+      const userChatList: string[] = await this.client.LRANGE(
+        `chatList:${senderId}`,
+        0,
+        -1
+      );
+      const receiver: ChatList = Helpers.parseJson(
+        userChatList.find((userChat) => userChat.includes(receiverId))!
+      );
+      const messages: string[] = await this.client.LRANGE(
+        `messages:${receiver.conversationId}`,
+        0,
+        -1
+      );
+      const unreadMessages: string[] = messages.filter(
+        (message) => Helpers.parseJson(message).isRead
+      );
+
+      for (const item of unreadMessages) {
+        const chatItem: MessageData = Helpers.parseJson(item);
+        const index = messages.findIndex((message) =>
+          message.includes(chatItem._id.toString())
+        );
+        chatItem.isRead = true;
+        await this.client.LSET(
+          `messages:${chatItem.conversationId}`,
+          index,
+          JSON.stringify(chatItem)
+        );
+      }
+
+      const lastMessage: string = (await this.client.LINDEX(
+        `messages:${receiver.conversationId}`,
+        -1
+      ))!;
+      return Helpers.parseJson(lastMessage);
+    } catch (error) {
+      this.log.error(error);
+      throw new ServerError('Server error. Try again');
+    }
+  }
+
   private async getChatUsersList(): Promise<ChatUsers[]> {
     const chatUsersList: ChatUsers[] = [];
     const chatUsers = await this.client.LRANGE('chatUsers', 0, -1);
