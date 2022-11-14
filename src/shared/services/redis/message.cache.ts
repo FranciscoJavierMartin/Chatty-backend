@@ -58,7 +58,7 @@ export class MessageCache extends BaseCache {
 
       await this.client.RPUSH(
         `messages:${conversationId}`,
-        JSON.stringify({ value })
+        JSON.stringify(value)
       );
     } catch (error) {
       this.log.error(error);
