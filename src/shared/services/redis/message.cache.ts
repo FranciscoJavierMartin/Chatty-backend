@@ -1,6 +1,7 @@
 import {
   ChatList,
   ChatUsers,
+  GetMessageFromCache,
   MessageData,
 } from '@chat/interfaces/chat.interface';
 import { ServerError } from '@global/helpers/error-handler';
@@ -188,6 +189,49 @@ export class MessageCache extends BaseCache {
     }
   }
 
+  public async markMessageAsDeleted(
+    senderId: string,
+    receiverId: string,
+    messageId: string,
+    type: 'deleteForMe'
+  ): Promise<MessageData> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+
+      const { index, message, receiver } = await this.getMessage(
+        senderId,
+        receiverId,
+        messageId
+      );
+      const chatItem: MessageData = Helpers.parseJson(message);
+
+      if (type === 'deleteForMe') {
+        chatItem.deleteForMe = true;
+      } else {
+        chatItem.deleteForMe = true;
+        chatItem.deleteForEveryone = true;
+      }
+
+      await this.client.LSET(
+        `messages:${receiver.conversationId}`,
+        index,
+        JSON.stringify(chatItem)
+      );
+
+      // Also "chatItem" can be returned
+      const lastMessage: string = (await this.client.LINDEX(
+        `messages:${receiver.conversationId}`,
+        index
+      ))!;
+      return Helpers.parseJson(lastMessage);
+    } catch (error) {
+      this.log.error(error);
+      throw new ServerError('Server error. Try again');
+    }
+  }
+
   private async getChatUsersList(): Promise<ChatUsers[]> {
     const chatUsersList: ChatUsers[] = [];
     const chatUsers = await this.client.LRANGE('chatUsers', 0, -1);
@@ -198,5 +242,34 @@ export class MessageCache extends BaseCache {
     }
 
     return chatUsersList;
+  }
+
+  private async getMessage(
+    senderId: string,
+    receiverId: string,
+    messageId: string
+  ): Promise<GetMessageFromCache> {
+    const userChatList: string[] = await this.client.LRANGE(
+      `chatList:${senderId}`,
+      0,
+      -1
+    );
+    const receiver: ChatList = Helpers.parseJson(
+      userChatList.find((item) => item.includes(receiverId))!
+    );
+    const messages: string[] = await this.client.LRANGE(
+      `messages:${receiver.conversationId}`,
+      0,
+      -1
+    );
+    const index: number = messages.findIndex((message) =>
+      message.includes(messageId)
+    );
+
+    return {
+      index,
+      message: messages[index],
+      receiver,
+    };
   }
 }
