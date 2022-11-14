@@ -16,6 +16,21 @@ class ChatWorker {
       done(error as Error);
     }
   }
+
+  public async markMessageAsDeleted(
+    job: Job,
+    done: DoneCallback
+  ): Promise<void> {
+    try {
+      const { messageId, type } = job.data;
+      await chatService.markMessageAsDeleted(messageId, type);
+      job.progress(100);
+      done(null, job.data);
+    } catch (error) {
+      log.error(error);
+      done(error as Error);
+    }
+  }
 }
 
 export const chatWorker: ChatWorker = new ChatWorker();

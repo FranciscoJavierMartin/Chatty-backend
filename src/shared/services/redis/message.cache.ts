@@ -193,7 +193,7 @@ export class MessageCache extends BaseCache {
     senderId: string,
     receiverId: string,
     messageId: string,
-    type: 'deleteForMe'
+    type: 'deleteForMe' | 'deleteForEveryone'
   ): Promise<MessageData> {
     try {
       if (!this.client.isOpen) {
