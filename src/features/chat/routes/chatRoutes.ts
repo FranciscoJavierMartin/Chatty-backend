@@ -17,6 +17,12 @@ class ChatRoutes {
       Get.prototype.conversationList
     );
 
+    this.router.get(
+      '/chat/message/:receiverId',
+      authMiddleware.checkAuthentication,
+      Get.prototype.messages
+    );
+
     this.router.post(
       '/chat/message',
       authMiddleware.checkAuthentication,

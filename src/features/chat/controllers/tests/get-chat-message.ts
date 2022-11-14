@@ -24,4 +24,23 @@ export class Get {
       userConversationList,
     });
   }
+
+  public async messages(req: Request, res: Response): Promise<void> {
+    const { receiverId } = req.params;
+
+    const messagesCached = await messageCache.getChatMessagesFromCache(
+      req.currentUser!.userId,
+      receiverId
+    );
+
+    const messages: MessageData[] = messagesCached.length
+      ? messagesCached
+      : await chatService.getMessages(
+          new mongoose.Types.ObjectId(req.currentUser!.userId),
+          new mongoose.Types.ObjectId(receiverId),
+          { createdAt: 1 }
+        );
+
+    res.status(HTTP_STATUS.OK).json({ message: '', messages });
+  }
 }
