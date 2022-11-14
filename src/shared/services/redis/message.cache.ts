@@ -148,6 +148,46 @@ export class MessageCache extends BaseCache {
     }
   }
 
+  public async getChatMessagesFromCache(
+    senderId: string,
+    receiverId: string
+  ): Promise<MessageData[]> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+
+      const userChatList: string[] = await this.client.LRANGE(
+        `chatList:${senderId}`,
+        0,
+        -1
+      );
+      const receiver: string = userChatList.find((userChat) =>
+        userChat.includes(receiverId)
+      )!;
+      const parsedReceiver: ChatList = Helpers.parseJson(receiver);
+      const chatMessages: MessageData[] = [];
+
+      if (parsedReceiver) {
+        const userMessages: string[] = await this.client.LRANGE(
+          `messages:${parsedReceiver.conversationId}`,
+          0,
+          -1
+        );
+
+        for (const item of userMessages) {
+          const chatItem = Helpers.parseJson(item);
+          chatMessages.push(chatItem);
+        }
+      }
+
+      return chatMessages;
+    } catch (error) {
+      this.log.error(error);
+      throw new ServerError('Server error. Try again');
+    }
+  }
+
   private async getChatUsersList(): Promise<ChatUsers[]> {
     const chatUsersList: ChatUsers[] = [];
     const chatUsers = await this.client.LRANGE('chatUsers', 0, -1);
