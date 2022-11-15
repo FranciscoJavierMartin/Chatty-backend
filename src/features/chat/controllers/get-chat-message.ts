@@ -41,6 +41,8 @@ export class Get {
           { createdAt: 1 }
         );
 
-    res.status(HTTP_STATUS.OK).json({ message: '', messages });
+    res
+      .status(HTTP_STATUS.OK)
+      .json({ message: 'User chat messages', messages });
   }
 }
