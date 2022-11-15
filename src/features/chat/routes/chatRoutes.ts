@@ -58,7 +58,7 @@ class ChatRoutes {
     this.router.delete(
       '/chat/message/mark-as-deleted',
       authMiddleware.checkAuthentication,
-      Delete.prototype.markMessageAsDelete
+      Delete.prototype.markMessageAsDeleted
     );
 
     return this.router;

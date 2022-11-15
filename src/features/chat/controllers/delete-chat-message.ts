@@ -9,7 +9,7 @@ import { chatQueue } from '@service/queues/chat.queue';
 const messageCache: MessageCache = new MessageCache();
 
 export class Delete {
-  public async markMessageAsDelete(req: Request, res: Response): Promise<void> {
+  public async markMessageAsDeleted(req: Request, res: Response): Promise<void> {
     const { senderId, receiverId, messageId, type } = req.body;
     const updatedMessage: MessageData = await messageCache.markMessageAsDeleted(
       senderId,
