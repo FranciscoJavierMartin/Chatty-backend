@@ -112,6 +112,20 @@ class ChatService {
       ).exec();
     }
   }
+
+  public async markMessageAsRead(
+    senderId: ObjectId,
+    receiverId: ObjectId
+  ): Promise<void> {
+    const query = {
+      $or: [
+        { senderId, receiverId },
+        { senderId: receiverId, receiverId: senderId },
+      ],
+    };
+
+    await MessageModel.updateOne(query, { $set: { isRead: true } }).exec();
+  }
 }
 
 export const chatService: ChatService = new ChatService();
