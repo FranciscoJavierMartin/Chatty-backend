@@ -126,6 +126,23 @@ class ChatService {
 
     await MessageModel.updateMany(query, { $set: { isRead: true } }).exec();
   }
+
+  public async updateMessageReaction(
+    messageId: ObjectId,
+    senderName: string,
+    reaction: string,
+    type: 'add' | 'remove'
+  ): Promise<void> {
+    if (type === 'add') {
+      await MessageModel.findByIdAndUpdate(messageId, {
+        $push: { reaction: { senderName, type: reaction } },
+      }).exec();
+    } else {
+      await MessageModel.findByIdAndUpdate(messageId, {
+        $pull: { reaction: { senderName } },
+      }).exec();
+    }
+  }
 }
 
 export const chatService: ChatService = new ChatService();

@@ -43,6 +43,26 @@ class ChatWorker {
       done(error as Error);
     }
   }
+
+  public async updateMessageReaction(
+    job: Job,
+    done: DoneCallback
+  ): Promise<void> {
+    try {
+      const { messageId, senderName, reaction, type } = job.data;
+      await chatService.updateMessageReaction(
+        messageId,
+        senderName,
+        reaction,
+        type
+      );
+      job.progress(100);
+      done(null, job.data);
+    } catch (error) {
+      log.error(error);
+      done(error as Error);
+    }
+  }
 }
 
 export const chatWorker: ChatWorker = new ChatWorker();

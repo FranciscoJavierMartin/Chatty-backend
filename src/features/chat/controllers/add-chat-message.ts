@@ -132,6 +132,29 @@ export class Add {
     res.status(HTTP_STATUS.OK).json({ message: 'Users removed' });
   }
 
+  public async reaction(req: Request, res: Response): Promise<void> {
+    const { conversationId, messageId, reaction, type } = req.body;
+    const updatedMessage: MessageData =
+      await messageCache.updateMessageReaction(
+        conversationId,
+        messageId,
+        reaction,
+        req.currentUser!.username,
+        type
+      );
+
+    socketIOChatObject.emit('message reaction', updatedMessage);
+
+    chatQueue.addChatJob('updateMessageReaction', {
+      messageId: new mongoose.Types.ObjectId(messageId),
+      senderName: req.currentUser!.username,
+      reaction,
+      type,
+    });
+
+    res.status(HTTP_STATUS.OK).json({ message: 'Message reaction added' });
+  }
+
   private emitSocketIOEvent(data: MessageData): void {
     socketIOChatObject.emit('message received', data);
     socketIOChatObject.emit('chat list', data);

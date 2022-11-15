@@ -43,6 +43,12 @@ class ChatRoutes {
       Update.prototype.markMessageAsRead
     );
 
+    this.router.patch(
+      '/chat/message/reaction',
+      authMiddleware.checkAuthentication,
+      Add.prototype.reaction
+    );
+
     this.router.delete(
       '/chat/message/remove-chat-users',
       authMiddleware.checkAuthentication,
