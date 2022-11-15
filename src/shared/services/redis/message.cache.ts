@@ -6,6 +6,7 @@ import {
 } from '@chat/interfaces/chat.interface';
 import { ServerError } from '@global/helpers/error-handler';
 import { Helpers } from '@global/helpers/helpers';
+import { Reaction } from '@reaction/interfaces/reaction.interface';
 import { BaseCache } from '@service/redis/base.cache';
 
 export class MessageCache extends BaseCache {
@@ -276,6 +277,60 @@ export class MessageCache extends BaseCache {
         -1
       ))!;
       return Helpers.parseJson(lastMessage);
+    } catch (error) {
+      this.log.error(error);
+      throw new ServerError('Server error. Try again');
+    }
+  }
+
+  public async updateMessageReaction(
+    conversationId: string,
+    messageId: string,
+    reaction: string,
+    senderName: string,
+    type: 'add' | 'remove'
+  ): Promise<MessageData> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+
+      const messages: string[] = await this.client.LRANGE(
+        `messages:${conversationId}`,
+        0,
+        -1
+      );
+      const messageIndex: number = messages.findIndex((message) =>
+        message.includes(messageId)
+      );
+      const message: MessageData = Helpers.parseJson(
+        (await this.client.LINDEX(`messages:${conversationId}`, messageIndex))!
+      );
+
+      if (message) {
+        message.reaction = message.reaction.filter(
+          (reaction) => reaction.senderName !== senderName
+        );
+
+        if (type === 'add') {
+          message.reaction = [
+            ...message.reaction,
+            { senderName, type: reaction },
+          ];
+        }
+
+        await this.client.LSET(
+          `messages:${conversationId}`,
+          messageIndex,
+          JSON.stringify(message)
+        );
+      }
+
+      const updatedMessage: string = (await this.client.LINDEX(
+        `messages:${conversationId}`,
+        messageIndex
+      ))!;
+      return Helpers.parseJson(updatedMessage);
     } catch (error) {
       this.log.error(error);
       throw new ServerError('Server error. Try again');
