@@ -255,7 +255,7 @@ export class MessageCache extends BaseCache {
         -1
       );
       const unreadMessages: string[] = messages.filter(
-        (message) => Helpers.parseJson(message).isRead
+        (message) => !Helpers.parseJson(message).isRead
       );
 
       for (const item of unreadMessages) {
