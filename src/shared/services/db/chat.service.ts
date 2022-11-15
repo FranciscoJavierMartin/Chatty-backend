@@ -119,12 +119,12 @@ class ChatService {
   ): Promise<void> {
     const query = {
       $or: [
-        { senderId, receiverId },
-        { senderId: receiverId, receiverId: senderId },
+        { senderId, receiverId, isRead: false },
+        { senderId: receiverId, receiverId: senderId, isRead: false },
       ],
     };
 
-    await MessageModel.updateOne(query, { $set: { isRead: true } }).exec();
+    await MessageModel.updateMany(query, { $set: { isRead: true } }).exec();
   }
 }
 

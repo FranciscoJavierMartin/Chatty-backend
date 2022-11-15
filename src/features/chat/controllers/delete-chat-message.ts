@@ -26,6 +26,6 @@ export class Delete {
       type,
     });
 
-    res.status(HTTP_STATUS.OK).json({ message: '' });
+    res.status(HTTP_STATUS.OK).json({ message: 'Message marked as deleted' });
   }
 }
