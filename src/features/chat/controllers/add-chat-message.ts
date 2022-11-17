@@ -52,7 +52,7 @@ export class Add {
 
     if (selectedImage) {
       const result: UploadApiResponse = (await uploads(
-        req.body.image,
+        selectedImage,
         req.currentUser!.userId,
         true,
         true
