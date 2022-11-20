@@ -15,6 +15,7 @@ import {
 } from '@follower/interfaces/follower.interface';
 import { NotificationJobData } from '@notification/interfaces/notification.interface';
 import { FileImageJobData } from '@image/interfaces/image.interface';
+import { ChatJobData, MessageData } from '@chat/interfaces/chat.interface';
 
 type BaseJobData =
   | AuthJob
@@ -25,7 +26,9 @@ type BaseJobData =
   | FollowerJobData
   | BlockedUserJobData
   | NotificationJobData
-  | FileImageJobData;
+  | FileImageJobData
+  | ChatJobData
+  | MessageData;
 
 let bullAdapters: BullAdapter[] = [];
 
