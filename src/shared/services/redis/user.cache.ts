@@ -196,4 +196,17 @@ export class UserCache extends BaseCache {
       throw new ServerError('Server error. Try again');
     }
   }
+
+  public async getTotalUsersInCache(): Promise<number> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+
+      return await this.client.ZCARD('user');
+    } catch (error) {
+      this.log.error(error);
+      throw new ServerError('Server error. Try again');
+    }
+  }
 }
