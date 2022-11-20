@@ -72,6 +72,10 @@ class UserService {
     return users;
   }
 
+  public async getTotalUsersInDB(): Promise<number> {
+    return await UserModel.find({}).countDocuments();
+  }
+
   private aggregateProject() {
     return {
       _id: 1,
