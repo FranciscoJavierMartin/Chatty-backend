@@ -129,6 +129,52 @@ export class UserCache extends BaseCache {
     }
   }
 
+  public async getUsersFromCache(
+    start: number,
+    end: number,
+    excludedUserKey: string
+  ): Promise<UserDocument[]> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+
+      const response: string[] = await this.client.ZRANGE('user', start, end, {
+        REV: true,
+      });
+      const multi: ReturnType<typeof this.client.multi> = this.client.multi();
+
+      for (const key of response) {
+        if (key !== excludedUserKey) {
+          multi.HGETALL(`users:${key}`);
+        }
+      }
+      const replies = await multi.exec();
+      const userReplies: UserDocument[] = [];
+
+      for (const reply of replies as unknown as UserDocument[]) {
+        reply.createdAt = new Date(Helpers.parseJson(`${reply.createdAt}`));
+        reply.postsCount = Helpers.parseJson(`${reply.postsCount}`);
+        reply.blocked = Helpers.parseJson(`${reply.blocked}`);
+        reply.blockedBy = Helpers.parseJson(`${reply.blockedBy}`);
+        reply.notifications = Helpers.parseJson(`${reply.notifications}`);
+        reply.social = Helpers.parseJson(`${reply.social}`);
+        reply.followersCount = Helpers.parseJson(`${reply.followersCount}`);
+        reply.followingCount = Helpers.parseJson(`${reply.followingCount}`);
+        reply.bgImageId = Helpers.parseJson(`${reply.bgImageId}`);
+        reply.bgImageVersion = Helpers.parseJson(`${reply.bgImageVersion}`);
+        reply.profilePicture = Helpers.parseJson(`${reply.profilePicture}`);
+
+        userReplies.push(reply);
+      }
+
+      return userReplies;
+    } catch (error) {
+      this.log.error(error);
+      throw new ServerError('Server error. Try again');
+    }
+  }
+
   public async updateSingleUserItemInCache(
     userId: string,
     prop: string,
