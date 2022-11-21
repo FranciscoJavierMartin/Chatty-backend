@@ -41,14 +41,12 @@ export class Get {
       req.currentUser!.userId
     );
 
-    res
-      .status(HTTP_STATUS.OK)
-      .json({
-        message: 'Get users',
-        users: allUsers.users,
-        totalUsers: allUsers.totalUsers,
-        followers,
-      });
+    res.status(HTTP_STATUS.OK).json({
+      message: 'Get users',
+      users: allUsers.users,
+      totalUsers: allUsers.totalUsers,
+      followers,
+    });
   }
 
   private async allUsers({
@@ -78,7 +76,9 @@ export class Get {
   }
 
   private async usersCount(type: DataSource): Promise<number> {
-    return 0;
+    return type === 'redis'
+      ? await userCache.getTotalUsersInCache()
+      : await userService.getTotalUsersInDB();
   }
 
   private async followers(userId: string): Promise<FollowerData[]> {
@@ -86,7 +86,7 @@ export class Get {
       await followerCache.getFollowersFromCache(`followers:${userId}`);
     const result = cachedFollowers.length
       ? cachedFollowers
-      : await followerService.getFolloweesData(
+      : await followerService.getFollowersData(
           new mongoose.Types.ObjectId(userId)
         );
 
