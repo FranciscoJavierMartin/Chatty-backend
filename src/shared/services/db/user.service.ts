@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { UserDocument } from '@user/interfaces/user.interface';
 import { UserModel } from '@user/models/user.schema';
+import { followerService } from './follower.service';
 
 class UserService {
   public async addUserData(data: UserDocument): Promise<void> {
@@ -70,6 +71,53 @@ class UserService {
     ]);
 
     return users;
+  }
+
+  public async getRandomUsers(userId: string): Promise<UserDocument[]> {
+    const randomUsers: UserDocument[] = [];
+
+    const users: UserDocument[] = await UserModel.aggregate([
+      { $match: { _id: { $ne: new mongoose.Types.ObjectId(userId) } } },
+      {
+        $lookup: {
+          from: 'Auth',
+          localField: 'authId',
+          foreignField: '_id',
+          as: 'authId',
+        },
+      },
+      { $unwind: '$authId' },
+      { $sample: { size: 10 } },
+      {
+        $addFields: {
+          username: '$authId.username',
+          email: '$authId.email',
+          avatarColor: '$authId.avatarColor',
+          uId: '$authId.uId',
+          createdAt: '$authId.createdAt',
+        },
+      },
+      {
+        $project: {
+          authId: 0,
+          __v: 0,
+        },
+      },
+    ]);
+
+    const followers: string[] = await followerService.getFolloweesIds(userId);
+
+    for (const user of users) {
+      const followerIndex = followers.findIndex(
+        (id) => id === user._id.toString()
+      );
+
+      if (followerIndex === -1) {
+        randomUsers.push(user);
+      }
+    }
+
+    return randomUsers;
   }
 
   public async getTotalUsersInDB(): Promise<number> {
