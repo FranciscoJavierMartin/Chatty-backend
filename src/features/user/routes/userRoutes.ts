@@ -1,6 +1,7 @@
 import express, { Router } from 'express';
 import { authMiddleware } from '@global/middlewares/auth-middleware';
 import { Get } from '@user/controllers/get-profile';
+import { Search } from '@user/controllers/search-user';
 
 class UserRoutes {
   private router: Router;
@@ -38,6 +39,12 @@ class UserRoutes {
       '/user/profile/user/suggestions',
       authMiddleware.checkAuthentication,
       Get.prototype.randomUserSuggestions
+    );
+
+    this.router.get(
+      '/user/profile/search/:query',
+      authMiddleware.checkAuthentication,
+      Search.prototype.user
     );
 
     return this.router;

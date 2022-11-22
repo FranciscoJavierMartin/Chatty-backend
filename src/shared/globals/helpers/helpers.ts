@@ -48,4 +48,8 @@ export class Helpers {
 
     return list;
   }
+
+  static escapeRegex(text: string): string {
+    return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+  }
 }

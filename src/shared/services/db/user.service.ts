@@ -1,7 +1,8 @@
 import mongoose from 'mongoose';
-import { UserDocument } from '@user/interfaces/user.interface';
+import { SearchUser, UserDocument } from '@user/interfaces/user.interface';
 import { UserModel } from '@user/models/user.schema';
 import { followerService } from './follower.service';
+import { AuthModel } from '@auth/models/auth.schema';
 
 class UserService {
   public async addUserData(data: UserDocument): Promise<void> {
@@ -122,6 +123,32 @@ class UserService {
 
   public async getTotalUsersInDB(): Promise<number> {
     return await UserModel.find({}).countDocuments();
+  }
+
+  public async searchUsers(regex: RegExp): Promise<SearchUser[]> {
+    const users = await AuthModel.aggregate([
+      { $match: { username: regex } },
+      {
+        $lookup: {
+          from: 'User',
+          localField: '_id',
+          foreignField: 'authId',
+          as: 'id',
+        },
+      },
+      { $unwind: '$user' },
+      {
+        $project: {
+          _id: '$user._id',
+          username: 1,
+          email: 1,
+          avatarColor: 1,
+          profilePicture: 1,
+        },
+      },
+    ]);
+
+    return users;
   }
 
   private aggregateProject() {
