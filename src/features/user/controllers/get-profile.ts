@@ -100,13 +100,36 @@ export class Get {
           createdAt: -1,
         });
 
+    res.status(HTTP_STATUS.OK).json({
+      message: 'Get user profile and posts',
+      user: existingUser,
+      posts: userPosts,
+    });
+  }
+
+  public async randomUserSuggestions(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    let randomUsers: UserDocument[] = [];
+
+    const cachedUsers: UserDocument[] = await userCache.getRandomUsersFromCache(
+      req.currentUser!.userId,
+      req.currentUser!.username
+    );
+
+    if (cachedUsers.length) {
+      randomUsers = [...cachedUsers];
+    } else {
+      const users: UserDocument[] = await userService.getRandomUsers(
+        req.currentUser!.userId
+      );
+      randomUsers = [...users];
+    }
+
     res
       .status(HTTP_STATUS.OK)
-      .json({
-        message: 'Get user profile and posts',
-        user: existingUser,
-        posts: userPosts,
-      });
+      .json({ message: 'User suggestions', users: randomUsers });
   }
 
   private async allUsers({
