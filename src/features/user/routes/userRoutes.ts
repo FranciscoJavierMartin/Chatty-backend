@@ -28,6 +28,12 @@ class UserRoutes {
       Get.prototype.profileByUserId
     );
 
+    this.router.get(
+      '/user/profile/posts/:username/:userId/:uId',
+      authMiddleware.checkAuthentication,
+      Get.prototype.profileByUserId
+    );
+
     return this.router;
   }
 }

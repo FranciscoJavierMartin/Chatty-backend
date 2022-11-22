@@ -8,6 +8,9 @@ import { FollowerCache } from '@service/redis/follower.cache';
 import { PostCache } from '@service/redis/post.cache';
 import { UserCache } from '@service/redis/user.cache';
 import { AllUsers, UserDocument } from '@user/interfaces/user.interface';
+import { Helpers } from '@global/helpers/helpers';
+import { PostDocument } from '@post/interfaces/post.interface';
+import { postService } from '@service/db/post.service';
 
 interface UserAll {
   newSkip: number;
@@ -76,6 +79,34 @@ export class Get {
     res
       .status(HTTP_STATUS.OK)
       .json({ message: 'Get user profile by id', user: existingUser });
+  }
+
+  public async profileAndPosts(req: Request, res: Response): Promise<void> {
+    const { userId, username, uId } = req.params;
+
+    const userName: string = Helpers.firstLetterUppercase(username);
+    const cachedUser: UserDocument | null = await userCache.getUserFromCache(
+      userId
+    );
+    const cachedUserPosts: PostDocument[] =
+      await postCache.getPostsByUserFromCache('post', uId);
+
+    const existingUser: UserDocument = cachedUser
+      ? cachedUser
+      : await userService.getUserById(userId);
+    const userPosts: PostDocument[] = cachedUserPosts.length
+      ? cachedUserPosts
+      : await postService.getPosts({ username: userName }, 0, 100, {
+          createdAt: -1,
+        });
+
+    res
+      .status(HTTP_STATUS.OK)
+      .json({
+        message: 'Get user profile and posts',
+        user: existingUser,
+        posts: userPosts,
+      });
   }
 
   private async allUsers({
