@@ -16,6 +16,18 @@ class UserRoutes {
       Get.prototype.all
     );
 
+    this.router.get(
+      '/user/profile',
+      authMiddleware.checkAuthentication,
+      Get.prototype.profile
+    );
+
+    this.router.get(
+      '/user/profile/:userId',
+      authMiddleware.checkAuthentication,
+      Get.prototype.profileByUserId
+    );
+
     return this.router;
   }
 }
