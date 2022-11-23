@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import {
   BasicInfo,
+  NotificationSettings,
   SearchUser,
   SocialLinks,
   UserDocument,
@@ -183,6 +184,17 @@ class UserService {
     await UserModel.findByIdAndUpdate(userId, {
       $set: {
         social: links,
+      },
+    }).exec();
+  }
+
+  public async updateNotificationSettings(
+    userId: string,
+    settings: NotificationSettings
+  ): Promise<void> {
+    await UserModel.findByIdAndUpdate(userId, {
+      $set: {
+        notifications: settings,
       },
     }).exec();
   }
