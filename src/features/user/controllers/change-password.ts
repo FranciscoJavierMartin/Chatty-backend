@@ -55,7 +55,7 @@ export class Update {
 
     res.status(HTTP_STATUS.OK).json({
       message:
-        'Password successfully. You will be redirected shortly to the login page',
+        'Password updated successfully. You will be redirected shortly to the login page.',
     });
   }
 }
