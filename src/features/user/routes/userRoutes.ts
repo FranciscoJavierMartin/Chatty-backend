@@ -3,6 +3,7 @@ import { authMiddleware } from '@global/middlewares/auth-middleware';
 import { Get } from '@user/controllers/get-profile';
 import { Search } from '@user/controllers/search-user';
 import { Update } from '@user/controllers/change-password';
+import { Edit } from '@user/controllers/update-basic-info';
 
 class UserRoutes {
   private router: Router;
@@ -52,6 +53,18 @@ class UserRoutes {
       '/user/profile/change-password',
       authMiddleware.checkAuthentication,
       Update.prototype.password
+    );
+
+    this.router.patch(
+      '/user/profile/basic-info',
+      authMiddleware.checkAuthentication,
+      Edit.prototype.info
+    );
+
+    this.router.patch(
+      '/user/profile/social-links',
+      authMiddleware.checkAuthentication,
+      Edit.prototype.socialLinks
     );
 
     return this.router;
