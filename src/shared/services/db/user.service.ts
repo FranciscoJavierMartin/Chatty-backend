@@ -1,5 +1,9 @@
 import mongoose from 'mongoose';
-import { SearchUser, UserDocument } from '@user/interfaces/user.interface';
+import {
+  BasicInfo,
+  SearchUser,
+  UserDocument,
+} from '@user/interfaces/user.interface';
 import { UserModel } from '@user/models/user.schema';
 import { followerService } from './follower.service';
 import { AuthModel } from '@auth/models/auth.schema';
@@ -157,6 +161,17 @@ class UserService {
   ): Promise<void> {
     await UserModel.findByIdAndUpdate(userId, {
       $set: { password: hashedPassword },
+    }).exec();
+  }
+
+  public async updateUserInfo(userId: string, info: BasicInfo): Promise<void> {
+    await UserModel.findByIdAndUpdate(userId, {
+      $set: {
+        work: info.work,
+        school: info.school,
+        quote: info.quote,
+        location: info.location,
+      },
     }).exec();
   }
 
