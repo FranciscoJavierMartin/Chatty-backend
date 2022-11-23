@@ -35,7 +35,7 @@ export class Update {
 
     const hashedPassword: string = await existingUser.hashPassword(newPassword);
 
-    await userService.updatePassword(req.currentUser!.userId, hashedPassword);
+    await userService.updatePassword(req.currentUser!.username, hashedPassword);
 
     const templateParams: ResetPasswordParams = {
       username: existingUser.username,
@@ -53,11 +53,9 @@ export class Update {
       template,
     });
 
-    res
-      .status(HTTP_STATUS.OK)
-      .json({
-        message:
-          'Password successfully. You will be redirected shortly to the login page',
-      });
+    res.status(HTTP_STATUS.OK).json({
+      message:
+        'Password successfully. You will be redirected shortly to the login page',
+    });
   }
 }

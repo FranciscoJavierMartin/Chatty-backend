@@ -158,12 +158,15 @@ class UserService {
   }
 
   public async updatePassword(
-    userId: string,
+    username: string,
     hashedPassword: string
   ): Promise<void> {
-    await UserModel.findByIdAndUpdate(userId, {
-      $set: { password: hashedPassword },
-    }).exec();
+    await AuthModel.updateOne(
+      { username },
+      {
+        $set: { password: hashedPassword },
+      }
+    ).exec();
   }
 
   public async updateUserInfo(userId: string, info: BasicInfo): Promise<void> {
