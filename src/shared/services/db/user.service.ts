@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import {
   BasicInfo,
   SearchUser,
+  SocialLinks,
   UserDocument,
 } from '@user/interfaces/user.interface';
 import { UserModel } from '@user/models/user.schema';
@@ -171,6 +172,17 @@ class UserService {
         school: info.school,
         quote: info.quote,
         location: info.location,
+      },
+    }).exec();
+  }
+
+  public async updateSocialLinks(
+    userId: string,
+    links: SocialLinks
+  ): Promise<void> {
+    await UserModel.findByIdAndUpdate(userId, {
+      $set: {
+        social: links,
       },
     }).exec();
   }
