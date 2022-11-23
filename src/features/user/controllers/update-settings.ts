@@ -23,6 +23,9 @@ export class UpdateSettings {
 
     res
       .status(HTTP_STATUS.OK)
-      .json({ message: 'Updated successfully', settings: req.body });
+      .json({
+        message: 'Notification settings updated successfully',
+        settings: req.body,
+      });
   }
 }
