@@ -151,6 +151,15 @@ class UserService {
     return users;
   }
 
+  public async updatePassword(
+    userId: string,
+    hashedPassword: string
+  ): Promise<void> {
+    await UserModel.findByIdAndUpdate(userId, {
+      $set: { password: hashedPassword },
+    }).exec();
+  }
+
   private aggregateProject() {
     return {
       _id: 1,
