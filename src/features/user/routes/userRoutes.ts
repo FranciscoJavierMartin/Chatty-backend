@@ -4,6 +4,7 @@ import { Get } from '@user/controllers/get-profile';
 import { Search } from '@user/controllers/search-user';
 import { Update } from '@user/controllers/change-password';
 import { Edit } from '@user/controllers/update-basic-info';
+import { UpdateSettings } from '@user/controllers/update-settings';
 
 class UserRoutes {
   private router: Router;
@@ -65,6 +66,12 @@ class UserRoutes {
       '/user/profile/social-links',
       authMiddleware.checkAuthentication,
       Edit.prototype.socialLinks
+    );
+
+    this.router.patch(
+      '/user/profile/notifications',
+      authMiddleware.checkAuthentication,
+      UpdateSettings.prototype.notifications
     );
 
     return this.router;
