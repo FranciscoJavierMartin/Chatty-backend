@@ -21,6 +21,7 @@ export default function setupRoutes(app: Application) {
     app.use('', healthRoutes.health());
     app.use('', healthRoutes.env());
     app.use('', healthRoutes.instance());
+    app.use('', healthRoutes.hardWork());
 
     app.use(BASE_PATH, authRoutes.routes());
     app.use(BASE_PATH, authRoutes.signOutRoute());
