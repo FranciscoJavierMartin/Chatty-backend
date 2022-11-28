@@ -19,6 +19,8 @@ export default function setupRoutes(app: Application) {
   const routes = () => {
     app.use('/queues', serverAdapter.getRouter());
     app.use('', healthRoutes.health());
+    app.use('', healthRoutes.env());
+    app.use('', healthRoutes.instance());
 
     app.use(BASE_PATH, authRoutes.routes());
     app.use(BASE_PATH, authRoutes.signOutRoute());

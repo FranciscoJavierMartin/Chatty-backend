@@ -4,6 +4,7 @@ import axios from 'axios';
 import { performance } from 'perf_hooks';
 import HTTP_STATUS from 'http-status-codes';
 import { config } from '@root/config';
+import { plugin } from 'mongoose';
 
 class HealthRoutes {
   private router: Router;
@@ -23,10 +24,28 @@ class HealthRoutes {
         );
     });
 
+    return this.router;
+  }
+
+  public env(): Router {
     this.router.get('/env', (req: Request, res: Response) => {
       res
         .status(HTTP_STATUS.OK)
         .send(`This is the ${config.NODE_ENV} environment.`);
+    });
+    return this.router;
+  }
+
+  public instance(): Router {
+    this.router.get('/instance', async (req: Request, res: Response) => {
+      const response = await axios.get(config.EC2_URL);
+      res
+        .status(HTTP_STATUS.OK)
+        .send(
+          `Server is running on EC2 instance with id ${
+            response.data
+          } and process id ${process.pid} on ${moment().format('LL')}`
+        );
     });
 
     return this.router;
