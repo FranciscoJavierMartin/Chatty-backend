@@ -23,6 +23,11 @@ class PostRoutes {
       authMiddleware.checkAuthentication,
       Get.prototype.postsWithImages
     );
+    this.router.get(
+      '/post/videos/:page',
+      authMiddleware.checkAuthentication,
+      Get.prototype.postsWithVideo
+    );
 
     this.router.post(
       '/post',
