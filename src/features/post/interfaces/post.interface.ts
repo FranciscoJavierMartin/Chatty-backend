@@ -22,6 +22,8 @@ export interface PostDocument extends Document {
   commentsCount: number;
   imgVersion?: string;
   imgId?: string;
+  videoVersion?: string;
+  videoId?: string;
   feelings?: string;
   gifUrl?: string;
   privacy?: string;
@@ -34,6 +36,7 @@ export interface GetPostsQuery {
   username?: string;
   imgId?: string;
   gifUrl?: string;
+  videoId?: string;
 }
 
 export interface SavePostToCache {
