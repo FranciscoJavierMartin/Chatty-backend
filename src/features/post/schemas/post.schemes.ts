@@ -34,9 +34,9 @@ const postWithImageSchema: ObjectSchema = Joi.object().keys({
 });
 
 const postWithVideoSchema: ObjectSchema = Joi.object().keys({
-  image: Joi.string().required().messages({
-    'any.required': 'Image is required',
-    'string.empty': 'Image is required',
+  video: Joi.string().required().messages({
+    'any.required': 'Video is required',
+    'string.empty': 'Video is required',
   }),
   post: Joi.string().optional().allow(null, ''),
   bgColor: Joi.string().optional().allow(null, ''),
