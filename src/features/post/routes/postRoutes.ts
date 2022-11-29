@@ -34,6 +34,11 @@ class PostRoutes {
       authMiddleware.checkAuthentication,
       Create.prototype.postWithImage
     );
+    this.router.post(
+      '/post/video/post',
+      authMiddleware.checkAuthentication,
+      Create.prototype.postWithVideo
+    );
 
     this.router.put(
       '/post/:postId',
