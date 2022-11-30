@@ -42,6 +42,8 @@ export class PostCache extends BaseCache {
       commentsCount,
       imgVersion,
       imgId,
+      videoId,
+      videoVersion,
       reactions,
       createdAt,
     } = createdPost;
@@ -77,6 +79,10 @@ export class PostCache extends BaseCache {
       `${imgVersion}`,
       'imgId',
       `${imgId}`,
+      'videoId',
+      `${videoId}`,
+      'videoVersion',
+      `${videoVersion}`,
       'createdAt',
       `${createdAt}`,
     ];
@@ -199,6 +205,47 @@ export class PostCache extends BaseCache {
     }
   }
 
+  public async getPostsWithVideoFromCache(
+    key: string,
+    start: number,
+    end: number
+  ): Promise<PostDocument[]> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+
+      const reply: string[] = await this.client.ZRANGE(key, start, end, {
+        REV: true,
+      });
+
+      const multi: ReturnType<typeof this.client.multi> = this.client.multi();
+
+      for (const value of reply) {
+        multi.HGETALL(`posts:${value}`);
+      }
+
+      const replies: PostCacheReturnedType = await multi.exec();
+      const postWithVideo: PostDocument[] = [];
+
+      for (const post of replies as unknown[] as PostDocument[]) {
+        if (post.videoId && post.videoVersion) {
+          post.commentsCount = Helpers.parseJson(
+            `${post.commentsCount}`
+          ) as number;
+          post.reactions = Helpers.parseJson(`${post.reactions}`) as Reactions;
+          post.createdAt = new Date(Helpers.parseJson(`${post.createdAt}`));
+          postWithVideo.push(post);
+        }
+      }
+
+      return postWithVideo;
+    } catch (error) {
+      this.log.error(error);
+      throw new ServerError('Server error. Try again');
+    }
+  }
+
   public async getPostsByUserFromCache(
     key: string,
     uId: string
@@ -294,6 +341,8 @@ export class PostCache extends BaseCache {
       imgVersion,
       imgId,
       profilePicture,
+      videoId,
+      videoVersion,
     } = updatedPost;
     const dataToSave: string[] = [
       'post',
@@ -312,6 +361,10 @@ export class PostCache extends BaseCache {
       `${imgVersion}`,
       'imgId',
       `${imgId}`,
+      'videoId',
+      `${videoId}`,
+      'videoVersion',
+      `${videoVersion}`,
     ];
 
     try {

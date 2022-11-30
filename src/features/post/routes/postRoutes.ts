@@ -23,6 +23,11 @@ class PostRoutes {
       authMiddleware.checkAuthentication,
       Get.prototype.postsWithImages
     );
+    this.router.get(
+      '/post/videos/:page',
+      authMiddleware.checkAuthentication,
+      Get.prototype.postsWithVideo
+    );
 
     this.router.post(
       '/post',
@@ -34,6 +39,11 @@ class PostRoutes {
       authMiddleware.checkAuthentication,
       Create.prototype.postWithImage
     );
+    this.router.post(
+      '/post/video/post',
+      authMiddleware.checkAuthentication,
+      Create.prototype.postWithVideo
+    );
 
     this.router.put(
       '/post/:postId',
@@ -44,6 +54,11 @@ class PostRoutes {
       '/post/image/:postId',
       authMiddleware.checkAuthentication,
       Update.prototype.postWithImage
+    );
+    this.router.put(
+      '/post/video/:postId',
+      authMiddleware.checkAuthentication,
+      Update.prototype.postWithVideo
     );
 
     this.router.delete(
