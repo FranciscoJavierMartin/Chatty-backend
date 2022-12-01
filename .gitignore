@@ -2,5 +2,6 @@ node_modules
 mongodb
 build
 .env
+.env.*
 .DS_Store
 coverage

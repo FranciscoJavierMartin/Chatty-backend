@@ -18,6 +18,7 @@ import { createClient } from 'redis';
 import { createAdapter } from '@socket.io/redis-adapter';
 import Logger from 'bunyan';
 import 'express-async-errors';
+import apiStats from 'swagger-stats';
 import { config } from '@root/config';
 import setupRoutes from '@root/routes';
 import { CustomError, ErrorResponse } from '@global/helpers/error-handler';
@@ -37,6 +38,7 @@ export class ChattyServer {
     this.securityMiddlewares(this.app);
     this.standardMiddlewares(this.app);
     this.routeMiddlewares(this.app);
+    this.apiMonitoring(this.app);
     this.globalErrorHandler(this.app);
     this.startServer(this.app);
   }
@@ -72,6 +74,14 @@ export class ChattyServer {
     setupRoutes(app);
   }
 
+  private apiMonitoring(app: Application): void {
+    app.use(
+      apiStats.getMiddleware({
+        uriPath: '/api-monitoring',
+      })
+    );
+  }
+
   private globalErrorHandler(app: Application): void {
     app.all('*', (req: Request, res: Response) => {
       res
@@ -98,6 +108,9 @@ export class ChattyServer {
   }
 
   private async startServer(app: Application): Promise<void> {
+    if (!config.JWT_TOKEN) {
+      throw new Error('JWT_TOKEN must be provided');
+    }
     try {
       const httpServer: http.Server = new http.Server(app);
       const socketIO: socket.Server = await this.createSocketIO(httpServer);
