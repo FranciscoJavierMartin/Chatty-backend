@@ -2,13 +2,39 @@ version: '3.0'
 
 services:
   mongo:
-    image: mongo
+    image: mongo:6.0.3
     restart: always
     ports:
       - '27017:27017'
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: testuser
-      MONGO_INITDB_ROOT_PASSWORD: testpassword
     container_name: chattydb
     volumes:
-      - ./mongodb:/var/lib/postgresql/data
+      - ./mongodb:/var/lib/mongodb/data
+  mongoexpress:
+    image: mongo-express
+    depends_on:
+      - mongo
+    restart: always
+    ports:
+      - '8082:8081'
+    links:
+      - mongo
+    environment:
+      - ME_CONFIG_MONGODB_URL=mongodb://mongo:27017
+  redis:
+    image: redis/redis-stack-server:6.2.4-v4
+    restart: always
+    depends_on:
+      - mongo
+    ports:
+      - '6379:6379'
+  redis-commander:
+    container_name: redis-commander
+    hostname: redis-commander
+    image: rediscommander/redis-commander:latest
+    restart: always
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - '8081:8081'

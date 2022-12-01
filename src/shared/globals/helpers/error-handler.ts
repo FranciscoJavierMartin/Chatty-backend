@@ -4,7 +4,7 @@ export interface ErrorResponse {
   message: string;
   statusCode: number;
   status: string;
-  serializeErros(): IError;
+  serializeErrors(): IError;
 }
 
 export interface IError {
@@ -21,12 +21,21 @@ export abstract class CustomError extends Error {
     super(message);
   }
 
-  serializeErros(): IError {
+  serializeErrors(): IError {
     return {
       message: this.message,
       status: this.status,
       statusCode: this.statusCode,
     };
+  }
+}
+
+export class JoiRequestValidationError extends CustomError {
+  statusCode = HTTP_STATUS.BAD_REQUEST;
+  status = 'error';
+
+  constructor(message: string) {
+    super(message);
   }
 }
 
