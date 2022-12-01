@@ -18,12 +18,16 @@ import { createClient } from 'redis';
 import { createAdapter } from '@socket.io/redis-adapter';
 import Logger from 'bunyan';
 import 'express-async-errors';
-import { config } from './config';
-import setupRoutes from './routes';
-import {
-  CustomError,
-  ErrorResponse,
-} from './shared/globals/helpers/error-handler';
+import apiStats from 'swagger-stats';
+import { config } from '@root/config';
+import setupRoutes from '@root/routes';
+import { CustomError, ErrorResponse } from '@global/helpers/error-handler';
+import { SocketIOPostHandler } from '@socket/post';
+import { SocketIOFollowerHandler } from '@socket/follower';
+import { SocketIOUserHandler } from '@socket/user';
+import { SocketIONotificationHandler } from '@socket/notification';
+import { SocketIOImageHandler } from '@socket/image';
+import { SocketIOChatHandler } from '@socket/chat';
 
 const log: Logger = config.createLogger('server');
 
@@ -34,6 +38,7 @@ export class ChattyServer {
     this.securityMiddlewares(this.app);
     this.standardMiddlewares(this.app);
     this.routeMiddlewares(this.app);
+    this.apiMonitoring(this.app);
     this.globalErrorHandler(this.app);
     this.startServer(this.app);
   }
@@ -69,6 +74,14 @@ export class ChattyServer {
     setupRoutes(app);
   }
 
+  private apiMonitoring(app: Application): void {
+    app.use(
+      apiStats.getMiddleware({
+        uriPath: '/api-monitoring',
+      })
+    );
+  }
+
   private globalErrorHandler(app: Application): void {
     app.all('*', (req: Request, res: Response) => {
       res
@@ -86,7 +99,7 @@ export class ChattyServer {
         log.error(error);
 
         if (error instanceof CustomError) {
-          return res.status(error.statusCode).json(error.serializeErros());
+          return res.status(error.statusCode).json(error.serializeErrors());
         }
 
         next();
@@ -95,11 +108,14 @@ export class ChattyServer {
   }
 
   private async startServer(app: Application): Promise<void> {
+    if (!config.JWT_TOKEN) {
+      throw new Error('JWT_TOKEN must be provided');
+    }
     try {
       const httpServer: http.Server = new http.Server(app);
-      // const socketIO: socket.Server = await this.createSocketIO(httpServer);
+      const socketIO: socket.Server = await this.createSocketIO(httpServer);
       this.startHttpServer(httpServer);
-      // this.socketIOConnections(socketIO);
+      this.socketIOConnections(socketIO);
     } catch (error) {
       log.error(error);
     }
@@ -129,5 +145,21 @@ export class ChattyServer {
     });
   }
 
-  private socketIOConnections(io: socket.Server): void {}
+  private socketIOConnections(io: socket.Server): void {
+    const postSocketHandler: SocketIOPostHandler = new SocketIOPostHandler(io);
+    const followerSocketHandler: SocketIOFollowerHandler =
+      new SocketIOFollowerHandler(io);
+    const userSocketHandler: SocketIOUserHandler = new SocketIOUserHandler(io);
+    const chatSocketHandler: SocketIOChatHandler = new SocketIOChatHandler(io);
+    const notificationSocketHandler: SocketIONotificationHandler =
+      new SocketIONotificationHandler();
+    const imageSocketHandler: SocketIOImageHandler = new SocketIOImageHandler();
+
+    postSocketHandler.listen();
+    followerSocketHandler.listen();
+    userSocketHandler.listen();
+    chatSocketHandler.listen();
+    notificationSocketHandler.listen(io);
+    imageSocketHandler.listen(io);
+  }
 }
