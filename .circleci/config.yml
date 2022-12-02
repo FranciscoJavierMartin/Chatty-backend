@@ -1,0 +1,37 @@
+version: 2.1
+executors:
+  app-executor:
+    docker:
+      - image: cimg/node:19.1.0
+      - image: cimg/redis:7.0.2
+      - image: 'cibuilds/base:latest'
+    working_directory: ~/repo
+  terraform-executor:
+    docker:
+      - image: hashicorp/terraform:lastest
+
+aliases:
+  - &show-current-branch-name
+    run:
+      name: Show current branch
+      command: echo ${CURRENT_BRANCH}
+  - &restore-cache
+    run:
+      keys:
+        - app-{{ checksum "package.json" }}
+        - app-
+  - &install-dependencies
+    run:
+      name: Install dependencies
+      command: npm install
+  - &save-cache
+    save_cache:
+      paths:
+        - node_modules
+      key: app-{{ checksum "package.json" }}
+  - &zip-project
+    run:
+      name: Zip project
+      command: |
+        rm -rf node_modules
+        zip chatapp.zip -r .
