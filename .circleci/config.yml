@@ -1,6 +1,7 @@
 orbs:
   codecov: codecov/codecov@3.2.4
   aws-cli: circleci/aws-cli@3.1.4
+  slack: circleci/slack@4.12.0
 version: 2.1
 executors:
   app-executor:
@@ -12,6 +13,10 @@ executors:
   terraform-executor:
     docker:
       - image: hashicorp/terraform:lastest
+  slack-executor:
+    docker:
+      - image: 'cibuilds/base:latest'
+    resource_class: small
 
 aliases:
   - &show-current-branch-name
@@ -38,6 +43,66 @@ aliases:
       command: |
         rm -rf node_modules
         zip chatapp.zip -r .
+  - &notify-on-fail
+    slack/notify:
+      event: fail
+      channel: 'chatty-app-builds'
+      template: ''
+      custom: |
+        {
+          "blocks": [
+            {
+              "type": "header",
+              "text": {
+                "type": "plain_text",
+                "text": "Job Failed. 🔴",
+                "emoji": true
+              }
+            },
+            {
+              "type": "section",
+              "fields": [
+                {
+                  "type": "mrkdwn",
+                  "text": "*Project*:\n$CIRCLE_PROJECT_REPONAME"
+                },
+                {
+                  "type": "mrkdwn",
+                  "text": "*Job*: ${CIRCLE_JOB}"
+                },
+                {
+                  "type": "mrkdwn",
+                  "text": "*Branch*:\n$CIRCLE_BRANCH"
+                },
+                {
+                  "type": "mrkdwn",
+                  "text": "*When*:\n$(date +'%m/%d/%Y %T')"
+                },
+                {
+                  "type": "mrkdwn",
+                  "text": "*Build*:\n$CIRCLE_BUILD_NUM"
+                },
+                {
+                  "type": "mrkdwn",
+                  "text": "*Author*:\n$CIRCLE_PROJECT_USERNAME"
+                }
+              ]
+            },
+            {
+              "type": "actions",
+              "elements": [
+                {
+                  "type": "button",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "View Job"
+                  },
+                  "url": "${CIRCLE_BUILD_URL}"
+                }
+              ]
+            }
+          ]
+        }
 
 jobs:
   build:
@@ -57,6 +122,8 @@ jobs:
       - run:
           name: Run linting
           command: npm run lint:check
+      - *notify-on-fail
+
   code_formatter-check:
     executor: app-executor
     steps:
@@ -66,6 +133,8 @@ jobs:
       - run:
           name: Run prettier check
           command: npm run prettier:check
+      - *notify-on-fail
+
   unit-test:
     executor: app-executor
     steps:
@@ -82,18 +151,9 @@ jobs:
           command: |
             sleep 3
             npm run test
-      - codecov/codecov
-  upload-project-to-s3:
-    executor: aws-cli/default
-    steps:
-      - checkout
-      - aws-cli/setup:
-          project-name: default
-      - *zip-project
-      - run:
-          name: Upload project to S3
-          command: |
-            aws --region eu-central-1 s3 cp chatapp.zip s3://chatapp-server-${CIRCLE_BRANCH}-app
+      - codecov/upload
+      - *notify-on-fail
+
   terraform-validate:
     executor: terraform-executor
     steps:
@@ -106,6 +166,8 @@ jobs:
           terraform init -backend=false
           terraform validate
           terraform fmt
+      - *notify-on-fail
+
   terraform-plan-and-apply:
     executor: terraform-executor
     steps:
@@ -124,6 +186,21 @@ jobs:
           cd deployment/
           terraform workspace select ${CIRCLE_BRANCH} || terraform workspace new ${CIRCLE_BRANCH}
           terraform apply -auto-approve
+      - *notify-on-fail
+
+  upload-project-to-s3:
+    executor: aws-cli/default
+    steps:
+      - checkout
+      - aws-cli/setup:
+          project-name: default
+      - *zip-project
+      - run:
+          name: Upload project to S3
+          command: |
+            aws --region eu-central-1 s3 cp chatapp.zip s3://chatapp-server-${CIRCLE_BRANCH}-app
+      - *notify-on-fail
+
   push-to-aws-code-deploy:
     executor: aws-cli/default
     steps:
@@ -143,6 +220,71 @@ jobs:
                     --file-exists-behavior "OVERWRITE" \
                     --s3-location bucket=chatapp-server-${CIRCLE_BRANCH}-app,bundleType=zip,key=chatapp.zip
             fi
+      - *notify-on-fail
+
+  notify-via-slack:
+    executor: slack-executor
+    steps:
+      - run: echo "Slack notification"
+      - slack/notify:
+          event: 'always'
+          channel: 'chatty-app-builds'
+          template: ''
+          custom: |
+            {
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "✅ 👍 ✅ ${CIRCLE_BRANCH} branch backend deployment is complete. ✅ 👍 ✅",
+                    "emoji": true
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Project*:\n$CIRCLE_PROJECT_REPONAME"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Job*: ${CIRCLE_JOB}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Branch*:\n$CIRCLE_BRANCH"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*When*:\n$(date +'%m/%d/%Y %T')"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Build*:\n$CIRCLE_BUILD_NUM"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Author*:\n$CIRCLE_PROJECT_USERNAME"
+                    }
+                  ]
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "View Job"
+                      },
+                      "url": "${CIRCLE_BUILD_URL}"
+                    }
+                  ]
+                }
+              ]
+            }
 
   terraform-destroy:
     executor: terraform-executor
