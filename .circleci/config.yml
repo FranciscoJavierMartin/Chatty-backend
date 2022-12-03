@@ -12,7 +12,7 @@ executors:
     working_directory: ~/repo
   terraform-executor:
     docker:
-      - image: hashicorp/terraform:lastest
+      - image: hashicorp/terraform:latest
   slack-executor:
     docker:
       - image: 'cibuilds/base:latest'
@@ -22,9 +22,9 @@ aliases:
   - &show-current-branch-name
     run:
       name: Show current branch
-      command: echo ${CURRENT_BRANCH}
+      command: echo ${CIRCLE_BRANCH}
   - &restore-cache
-    run:
+    restore_cache:
       keys:
         - app-{{ checksum "package.json" }}
         - app-
@@ -41,8 +41,9 @@ aliases:
     run:
       name: Zip project
       command: |
-        rm -rf node_modules
-        zip chatapp.zip -r .
+          rm -rf node_modules
+          zip chatapp.zip -r .
+          echo "Zip successful"
   - &notify-on-fail
     slack/notify:
       event: fail
@@ -125,7 +126,7 @@ jobs:
           command: npm run lint:check
       - *notify-on-fail
 
-  code_formatter-check:
+  code-formatter-check:
     executor: app-executor
     steps:
       - checkout
@@ -140,7 +141,7 @@ jobs:
     executor: app-executor
     steps:
       - checkout
-      - setup_remote-docker
+      - setup_remote_docker
       - *show-current-branch-name
       - *restore-cache
       - run:
@@ -161,12 +162,12 @@ jobs:
       - checkout
       - *show-current-branch-name
       - run:
-        name: Terraform validate & format
-        command: |
-          cd deployment/
-          terraform init -backend=false
-          terraform validate
-          terraform fmt
+          name: Terraform validate & format
+          command: |
+            cd deployment/
+            terraform init -backend=false
+            terraform validate
+            terraform fmt
       - *notify-on-fail
 
   terraform-plan-and-apply:
@@ -174,19 +175,21 @@ jobs:
     steps:
       - checkout
       - *show-current-branch-name
+      - aws-cli/setup:
+          profile-name: default
       - run:
-        name: Terraform plan
-        command: |
-          cd deployment/
-          terraform init
-          terraform workspace select ${CIRCLE_BRANCH} || terraform workspace new ${CIRCLE_BRANCH}
-          terraform plan
+          name: Terraform plan
+          command: |
+            cd deployment/
+            terraform init
+            terraform workspace select ${CIRCLE_BRANCH} || terraform workspace new ${CIRCLE_BRANCH}
+            terraform plan
       - run:
-        name: Terraform apply
-        command: |
-          cd deployment/
-          terraform workspace select ${CIRCLE_BRANCH} || terraform workspace new ${CIRCLE_BRANCH}
-          terraform apply -auto-approve
+          name: Terraform apply
+          command: |
+            cd deployment/
+            terraform workspace select ${CIRCLE_BRANCH}
+            terraform apply -auto-approve
       - *notify-on-fail
 
   upload-project-to-s3:
@@ -194,12 +197,12 @@ jobs:
     steps:
       - checkout
       - aws-cli/setup:
-          project-name: default
+          profile-name: default
       - *zip-project
       - run:
           name: Upload project to S3
           command: |
-            aws --region eu-central-1 s3 cp chatapp.zip s3://chatapp-server-${CIRCLE_BRANCH}-app
+            aws --region eu-central-1 s3 cp chatapp.zip s3://<variable-prefix>-${CIRCLE_BRANCH}-app
       - *notify-on-fail
 
   push-to-aws-code-deploy:
@@ -215,11 +218,11 @@ jobs:
             then
                 aws deploy create-deployment \
                     --region eu-central-1 \
-                    --application-name chatapp-server-${CIRCLE_BRANCH}-app \
+                    --application-name <variable-prefix>-${CIRCLE_BRANCH}-app \
                     --deployment-config-name CodeDeployDefault.AllAtOnce \
-                    --deployment-group-name chatapp-server-${CIRCLE_BRANCH}-group \
+                    --deployment-group-name <variable-prefix>-${CIRCLE_BRANCH}-group \
                     --file-exists-behavior "OVERWRITE" \
-                    --s3-location bucket=chatapp-server-${CIRCLE_BRANCH}-app,bundleType=zip,key=chatapp.zip
+                    --s3-location bucket=<variable-prefix>-${CIRCLE_BRANCH}-app,bundleType=zip,key=chatapp.zip
             fi
       - *notify-on-fail
 
@@ -293,26 +296,17 @@ jobs:
       - checkout
       - *show-current-branch-name
       - run:
-        name: Terraform destroy
-        command: |
-          cd deployment/
-          terraform init
-          terraform workspace select ${CIRCLE_BRANCH} || terraform workspace new ${CIRCLE_BRANCH}
-          terraform destroy -auto-approve
+          name: Terraform destroy
+          command: |
+            cd deployment/
+            terraform init
+            terraform workspace select ${CIRCLE_BRANCH} || terraform workspace new ${CIRCLE_BRANCH}
+            terraform destroy -auto-approve
 
 workflows:
   build_and_deploy:
     jobs:
       - build
-      - linting:
-          requires:
-            - build
-          filters:
-            branches:
-              only:
-                - develop
-                - staging
-                - main
       - linting:
           requires:
             - build
@@ -340,18 +334,9 @@ workflows:
                 - develop
                 - staging
                 - main
-      - upload-project-to-s3:
-          requires:
-            - unit-test
-          filters:
-            branches:
-              only:
-                - develop
-                - staging
-                - main
       - terraform-validate:
           requires:
-            - upload-project-to-s3
+            - unit-test
           filters:
             branches:
               only:
@@ -367,9 +352,18 @@ workflows:
                 - develop
                 - staging
                 - main
-      - push-to-aws-code-deploy:
+      - upload-project-to-s3:
           requires:
             - terraform-plan-and-apply
+          filters:
+            branches:
+              only:
+                - develop
+                - staging
+                - main
+      - push-to-aws-code-deploy:
+          requires:
+            - upload-project-to-s3
           filters:
             branches:
               only:
