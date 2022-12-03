@@ -1,3 +1,6 @@
+orbs:
+  codecov: codecov/codecov@3.2.4
+  aws-cli: circleci/aws-cli@3.1.4
 version: 2.1
 executors:
   app-executor:
@@ -35,3 +38,59 @@ aliases:
       command: |
         rm -rf node_modules
         zip chatapp.zip -r .
+
+jobs:
+  build:
+    executor: app-executor
+    steps:
+      - checkout
+      - *show-current-branch-name
+      - *restore-cache
+      - *install-dependencies
+      - *save-cache
+  linting:
+    executor: app-executor
+    steps:
+      - checkout
+      - *show-current-branch-name
+      - *restore-cache
+      - run:
+          name: Run linting
+          command: npm run lint:check
+  code_formatter-check:
+    executor: app-executor
+    steps:
+      - checkout
+      - *show-current-branch-name
+      - *restore-cache
+      - run:
+          name: Run prettier check
+          command: npm run prettier:check
+  unit-test:
+    executor: app-executor
+    steps:
+      - checkout
+      - setup_remote-docker
+      - *show-current-branch-name
+      - *restore-cache
+      - run:
+          name: Start redis server
+          command: docker run --name chatapp-redis -p 6379:6379 -d redis
+          background: true
+      - run:
+          name: Run unit test
+          command: |
+            sleep 3
+            npm run test
+      - codecov/codecov
+  upload-project-to-s3:
+    executor: aws-cli/default
+    steps:
+      - checkout
+      - aws-cli/setup:
+          project-name: default
+      - *zip-project
+      - run:
+          name: Upload project to S3
+          command: |
+            aws --region eu-central-1 s3 cp chatapp.zip s3://chatapp-server-${CIRCLE_BRANCH}-app
