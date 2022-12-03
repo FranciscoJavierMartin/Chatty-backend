@@ -113,6 +113,7 @@ jobs:
       - *restore-cache
       - *install-dependencies
       - *save-cache
+
   linting:
     executor: app-executor
     steps:
@@ -298,3 +299,102 @@ jobs:
           terraform init
           terraform workspace select ${CIRCLE_BRANCH} || terraform workspace new ${CIRCLE_BRANCH}
           terraform destroy -auto-approve
+
+workflows:
+  build_and_deploy:
+    jobs:
+      - build
+      - linting:
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - develop
+                - staging
+                - main
+      - linting:
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - develop
+                - staging
+                - main
+      - code-formatter-check:
+          requires:
+            - linting
+          filters:
+            branches:
+              only:
+                - develop
+                - staging
+                - main
+      - unit-test:
+          requires:
+            - code-formatter-check
+          filters:
+            branches:
+              only:
+                - develop
+                - staging
+                - main
+      - upload-project-to-s3:
+          requires:
+            - unit-test
+          filters:
+            branches:
+              only:
+                - develop
+                - staging
+                - main
+      - terraform-validate:
+          requires:
+            - upload-project-to-s3
+          filters:
+            branches:
+              only:
+                - develop
+                - staging
+                - main
+      - terraform-plan-and-apply:
+          requires:
+            - terraform-validate
+          filters:
+            branches:
+              only:
+                - develop
+                - staging
+                - main
+      - push-to-aws-code-deploy:
+          requires:
+            - terraform-plan-and-apply
+          filters:
+            branches:
+              only:
+                - develop
+                - staging
+                - main
+      - notify-via-slack:
+          requires:
+            - push-to-aws-code-deploy
+          filters:
+            branches:
+              only:
+                - develop
+                - staging
+                - main
+      - hold:
+          type: approval
+          requires:
+            - notify-via-slack
+      - terraform-destroy:
+          requires:
+            - hold
+          filters:
+            branches:
+              only:
+                - develop
+                - staging
+                - main
