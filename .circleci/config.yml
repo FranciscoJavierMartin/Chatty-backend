@@ -124,3 +124,35 @@ jobs:
           cd deployment/
           terraform workspace select ${CIRCLE_BRANCH} || terraform workspace new ${CIRCLE_BRANCH}
           terraform apply -auto-approve
+  push-to-aws-code-deploy:
+    executor: aws-cli/default
+    steps:
+      - checkout
+      - aws-cli/setup:
+          profile-name: default
+      - run:
+          name: Deploy changes with AWS code deploy
+          command: |
+            if [ "${CODE_DEPLOY_UPDATE}" == "true" ]
+            then
+                aws deploy create-deployment \
+                    --region eu-central-1 \
+                    --application-name chatapp-server-${CIRCLE_BRANCH}-app \
+                    --deployment-config-name CodeDeployDefault.AllAtOnce \
+                    --deployment-group-name chatapp-server-${CIRCLE_BRANCH}-group \
+                    --file-exists-behavior "OVERWRITE" \
+                    --s3-location bucket=chatapp-server-${CIRCLE_BRANCH}-app,bundleType=zip,key=chatapp.zip
+            fi
+
+  terraform-destroy:
+    executor: terraform-executor
+    steps:
+      - checkout
+      - *show-current-branch-name
+      - run:
+        name: Terraform destroy
+        command: |
+          cd deployment/
+          terraform init
+          terraform workspace select ${CIRCLE_BRANCH} || terraform workspace new ${CIRCLE_BRANCH}
+          terraform destroy -auto-approve
