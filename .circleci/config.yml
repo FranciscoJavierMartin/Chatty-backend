@@ -94,3 +94,33 @@ jobs:
           name: Upload project to S3
           command: |
             aws --region eu-central-1 s3 cp chatapp.zip s3://chatapp-server-${CIRCLE_BRANCH}-app
+  terraform-validate:
+    executor: terraform-executor
+    steps:
+      - checkout
+      - *show-current-branch-name
+      - run:
+        name: Terraform validate & format
+        command: |
+          cd deployment/
+          terraform init -backend=false
+          terraform validate
+          terraform fmt
+  terraform-plan-and-apply:
+    executor: terraform-executor
+    steps:
+      - checkout
+      - *show-current-branch-name
+      - run:
+        name: Terraform plan
+        command: |
+          cd deployment/
+          terraform init
+          terraform workspace select ${CIRCLE_BRANCH} || terraform workspace new ${CIRCLE_BRANCH}
+          terraform plan
+      - run:
+        name: Terraform apply
+        command: |
+          cd deployment/
+          terraform workspace select ${CIRCLE_BRANCH} || terraform workspace new ${CIRCLE_BRANCH}
+          terraform apply -auto-approve
